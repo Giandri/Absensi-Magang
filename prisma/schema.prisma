@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("user") // admin, user
+  phone     String?  // Nomor telepon/WhatsApp
+  address   String?  // Alamat
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  attendances Attendance[]
+  permissions Permission[]
+
+  @@map("users")
+}
+
+model Attendance {
+  id                String   @id @default(cuid())
+  userId            String
+  date              DateTime // Tanggal absensi
+  checkInTime       DateTime? // Waktu check-in
+  checkOutTime      DateTime? // Waktu check-out
+  checkInLatitude   Float? // Latitude saat check-in
+  checkInLongitude  Float? // Longitude saat check-in
+  checkOutLatitude  Float? // Latitude saat check-out
+  checkOutLongitude Float? // Longitude saat check-out
+  status            String   @default("present") // present, absent, late, half_day, etc.
+  notes             String? // Catatan tambahan
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date]) // Composite index untuk query berdasarkan user dan tanggal
+
+  @@map("attendances")
+}
+
+model Permission {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  type      String
+  note      String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@index([userId])
+  @@map("permissions")
+}
+
