@@ -59,8 +59,6 @@ export async function POST(request: NextRequest) {
 
         const dateForRecord = todayWIB;
 
-        // Check Late Status using WIB Timezone
-        // 08:00 WIB is the threshold
         const wibTime = checkInTime.toLocaleTimeString("en-US", {
           timeZone: "Asia/Jakarta",
           hour12: false,
@@ -69,7 +67,7 @@ export async function POST(request: NextRequest) {
         });
         const [wibHour, wibMinute] = wibTime.split(":").map(Number);
 
-        // Late if > 08:00
+
         const isLate = wibHour > 8 || (wibHour === 8 && wibMinute > 0);
         const status = isLate ? "late" : "present";
 
@@ -115,7 +113,6 @@ export async function POST(request: NextRequest) {
       const MIN_DURATION = 28830000;
 
       if (durationMs < MIN_DURATION) {
-        // Calculate remaining time for better UX
         const remainingMs = MIN_DURATION - durationMs;
         const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
         const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -161,8 +158,6 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ message: "Authentication required" }, { status: 401 });
     }
-
-    // Use WIB helpers to get the correct "today" range
     const { getTodayWIB, getTomorrowWIB } = await import("@/lib/date");
     const todayWIB = getTodayWIB();
     const tomorrowWIB = getTomorrowWIB();
