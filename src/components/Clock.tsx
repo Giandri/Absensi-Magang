@@ -24,7 +24,7 @@ const OFFICE_LOCATION = {
   latitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LAT || "-2.1360196129894264"),
   longitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LNG || "106.0848296111155"),
 };
-const MAX_DISTANCE_METERS = parseInt(process.env.NEXT_PUBLIC_MAX_RADIUS || "200", 10);
+const MAX_DISTANCE_METERS = parseInt(process.env.NEXT_PUBLIC_MAX_RADIUS || "100", 10);
 
 {/* HITUNG JARAK */ }
 const getDistanceFromOffice = (userLat: number, userLng: number): number => {

@@ -8,7 +8,7 @@ const OFFICE_CONFIG = {
     name: process.env.NEXT_PUBLIC_OFFICE_NAME || "Kantor BWS BABEL",
     latitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LAT || "-2.1360196129894264"),
     longitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LNG || "106.0848296111155"),
-    radius: parseInt(process.env.NEXT_PUBLIC_MAX_RADIUS || "200", 10), // dalam meter
+    radius: parseInt(process.env.NEXT_PUBLIC_MAX_RADIUS || "100", 10), // dalam meter
 };
 
 /**

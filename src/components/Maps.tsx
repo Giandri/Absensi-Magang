@@ -34,7 +34,7 @@ interface MapsProps {
 }
 {/* LOKASI ABSEN */ }
 const OFFICE = { latitude: -2.1359660060833807, longitude: 106.08458595346755 };
-const RADIUS = 200;
+const RADIUS = 100;
 
 export default function Maps({ height = "300px", showMarker = true, currentLocation }: MapsProps = {}) {
   const defaultPosition: [number, number] = [-2.136220950277728, 106.08475522112438];
@@ -43,16 +43,18 @@ export default function Maps({ height = "300px", showMarker = true, currentLocat
   return (
     <div className="relative" style={{ height }}>
       <div className="absolute inset-0 z-10">
-        <MapContainer center={position} zoom={16} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
+        <MapContainer center={position} zoom={17} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
           <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Tiles © Esri" />
           {/* RADIUS KANTOR */}
           <Circle
-            center={[OFFICE.latitude, OFFICE.longitude]}
+            center={[OFFICE.latitude - 0.0005, OFFICE.longitude]}
             radius={RADIUS}
             pathOptions={{
               color: "#facc15",
               fillColor: "#fde047",
               fillOpacity: 0.2,
+              weight: 2,
+
             }}
             className="animate-pulse"
           />

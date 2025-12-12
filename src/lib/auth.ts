@@ -31,7 +31,6 @@ export const authOptions = {
 
                 if (!valid) return null;
 
-                //  DATA LOGIN
                 return {
                     id: user.id.toString(),
                     name: user.name,
