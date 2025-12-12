@@ -250,7 +250,7 @@ export default function Clock() {
         userId,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
           toast.success("Absen Pulang Berhasil!", {
             description: formatTime(new Date()),
           });

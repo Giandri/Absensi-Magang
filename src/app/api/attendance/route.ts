@@ -28,21 +28,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Invalid attendance type. Must be 'checkin' or 'checkout'" }, { status: 400 });
     }
 
-    // Force server time to track "today" in WIB context
-    // This prevents users from changing device time to bypass daily checks
-    // However, we respect the "timestamp" passed for the exact precision if desired, 
-    // OR we override it with calculate server time to be safe. 
-    // For now, let's use the explicit WIB helpers for the *Range Check*.
     const { getTodayWIB, getTomorrowWIB } = await import("@/lib/date");
 
     const todayWIB = getTodayWIB();
     const tomorrowWIB = getTomorrowWIB();
 
-    // Use the explicit timestamp provided by client for the record itself (if we trust client)
-    // or clamp it? Let's use it as is for the specific log, but validate against "today" using WIB.
+
     const attendanceDate = new Date(timestamp);
 
-    // Ensure accurate day check
+
     let existingAttendance = await prisma.attendance.findFirst({
       where: {
         userId,
@@ -62,7 +56,7 @@ export async function POST(request: NextRequest) {
         {/* UBAH WAKTU ABSENSI MASUK */ }
         const checkInTime = new Date(timestamp);
 
-        // Use todayWIB for the "Date" column (normalized 00:00) to ensure uniqueness per day
+
         const dateForRecord = todayWIB;
 
         const lateThreshold = new Date(dateForRecord);
@@ -101,12 +95,33 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "Anda sudah melakukan absen pulang hari ini" }, { status: 400 });
       }
 
+      {/* HITUNG DURASI KERJA */ }
+      const checkOutTime = new Date(timestamp);
+
+      const checkInTime = new Date(existingAttendance.checkInTime as Date);
+
+      const durationMs = checkOutTime.getTime() - checkInTime.getTime();
+
+      {/* 8 jam + 30 detik = (8 * 3600 * 1000) + (30 * 1000) = 28800000 + 30000 = 28830000 ms */ }
+      const MIN_DURATION = 28830000;
+
+      if (durationMs < MIN_DURATION) {
+        const remainingMs = MIN_DURATION - durationMs;
+        const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+        const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        return NextResponse.json({
+          message: `Gagal absen pulang. Minimal kerja 8 jam 30 detik.`
+        }, { status: 400 });
+      }
+
       existingAttendance = await prisma.attendance.update({
         where: { id: existingAttendance.id },
         data: {
-          checkOutTime: new Date(timestamp),
+          checkOutTime: checkOutTime,
           checkOutLatitude: latitude,
           checkOutLongitude: longitude,
+
         },
       });
     }
