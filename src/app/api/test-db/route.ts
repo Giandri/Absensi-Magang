@@ -37,9 +37,15 @@ export async function GET() {
       success: true,
       data: user,
     });
-  } catch (error) {
-    console.error("❌ Error fetching profile:", error); // Ini udah ada, bagus
-    return NextResponse.json({ error: "Internal server error", details: error.message }, { status: 500 }); // Tambah details biar tau error apa
+  } catch (error: any) {
+    console.error("❌ Error fetching profile:", error);
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        details: error.message || "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
 
