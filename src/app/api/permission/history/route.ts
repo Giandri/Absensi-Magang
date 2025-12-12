@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const session = await auth();
     let userId = session?.user?.id;
 
-    // Fallback kalau dipanggil dari admin atau debug
+
     if (!userId) {
       const { searchParams } = new URL(request.url);
       userId = searchParams.get("userId") ?? undefined;

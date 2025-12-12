@@ -84,10 +84,10 @@ export async function GET(request: NextRequest) {
                     email: att.user.email,
                     userId: att.user.id,
                     checkIn: checkInTime
-                        ? checkInTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+                        ? checkInTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })
                         : null,
                     checkOut: checkOutTime
-                        ? checkOutTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+                        ? checkOutTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })
                         : null,
                     status: att.status,
                     location: location,
@@ -118,6 +118,7 @@ export async function GET(request: NextRequest) {
                 ? new Date(att.checkOutTime || att.checkInTime!).toLocaleTimeString("id-ID", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: "Asia/Jakarta"
                 })
                 : "-",
             status: att.status === "late" ? "warning" : "success",

@@ -80,21 +80,24 @@ export async function GET(request: NextRequest) {
           day: "numeric",
           month: "long",
           year: "numeric",
+          timeZone: "Asia/Jakarta", // Enforce WIB
         }),
         dateISO: date.toISOString().split("T")[0],
         dateTimestamp: date.getTime(), // ✅ Untuk sorting
         status: attendance.status,
         checkIn: checkInTime
           ? checkInTime.toLocaleTimeString("id-ID", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Jakarta", // Enforce WIB
+          })
           : null,
         checkOut: checkOutTime
           ? checkOutTime.toLocaleTimeString("id-ID", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Jakarta", // Enforce WIB
+          })
           : null,
         checkInLocation:
           attendance.checkInLatitude && attendance.checkInLongitude
@@ -121,6 +124,7 @@ export async function GET(request: NextRequest) {
           day: "numeric",
           month: "long",
           year: "numeric",
+          timeZone: "Asia/Jakarta", // Enforce WIB
         }),
         dateISO: date.toISOString().split("T")[0],
         dateTimestamp: date.getTime(), // ✅ Untuk sorting
@@ -134,6 +138,7 @@ export async function GET(request: NextRequest) {
           day: "numeric",
           month: "short",
           year: "numeric",
+          timeZone: "Asia/Jakarta", // Enforce WIB
         }),
       };
     });

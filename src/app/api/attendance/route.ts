@@ -28,18 +28,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Invalid attendance type. Must be 'checkin' or 'checkout'" }, { status: 400 });
     }
 
+    // Force server time to track "today" in WIB context
+    // This prevents users from changing device time to bypass daily checks
+    // However, we respect the "timestamp" passed for the exact precision if desired, 
+    // OR we override it with calculate server time to be safe. 
+    // For now, let's use the explicit WIB helpers for the *Range Check*.
+    const { getTodayWIB, getTomorrowWIB } = await import("@/lib/date");
+
+    const todayWIB = getTodayWIB();
+    const tomorrowWIB = getTomorrowWIB();
+
+    // Use the explicit timestamp provided by client for the record itself (if we trust client)
+    // or clamp it? Let's use it as is for the specific log, but validate against "today" using WIB.
     const attendanceDate = new Date(timestamp);
-    attendanceDate.setHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
+    // Ensure accurate day check
     let existingAttendance = await prisma.attendance.findFirst({
       where: {
         userId,
         date: {
-          gte: today,
-          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+          gte: todayWIB,
+          lt: tomorrowWIB,
         },
       },
     });
@@ -52,7 +61,11 @@ export async function POST(request: NextRequest) {
       if (!existingAttendance) {
         {/* UBAH WAKTU ABSENSI MASUK */ }
         const checkInTime = new Date(timestamp);
-        const lateThreshold = new Date(attendanceDate);
+
+        // Use todayWIB for the "Date" column (normalized 00:00) to ensure uniqueness per day
+        const dateForRecord = todayWIB;
+
+        const lateThreshold = new Date(dateForRecord);
         lateThreshold.setHours(8, 0, 0, 0);
 
         const status = checkInTime > lateThreshold ? "late" : "present";
@@ -60,8 +73,8 @@ export async function POST(request: NextRequest) {
         existingAttendance = await prisma.attendance.create({
           data: {
             userId,
-            date: attendanceDate,
-            checkInTime: new Date(timestamp),
+            date: dateForRecord,
+            checkInTime: checkInTime,
             checkInLatitude: latitude,
             checkInLongitude: longitude,
             status: status,
@@ -124,18 +137,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Authentication required" }, { status: 401 });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+    // Use WIB helpers to get the correct "today" range
+    const { getTodayWIB, getTomorrowWIB } = await import("@/lib/date");
+    const todayWIB = getTodayWIB();
+    const tomorrowWIB = getTomorrowWIB();
 
     const attendance = await prisma.attendance.findFirst({
       where: {
         userId,
         date: {
-          gte: today,
-          lt: tomorrow,
+          gte: todayWIB,
+          lt: tomorrowWIB,
         },
       },
     });
