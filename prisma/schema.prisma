@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -15,9 +13,9 @@ model User {
   email     String   @unique
   name      String?
   password  String
-  role      String   @default("user") // admin, user
-  phone     String?  // Nomor telepon/WhatsApp
-  address   String?  // Alamat
+  role      String   @default("user") 
+  phone     String? 
+  address   String? 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -29,19 +27,19 @@ model User {
 }
 
 model Attendance {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   userId            String
-  date              DateTime // Tanggal absensi
-  checkInTime       DateTime? // Waktu check-in
-  checkOutTime      DateTime? // Waktu check-out
-  checkInLatitude   Float? // Latitude saat check-in
-  checkInLongitude  Float? // Longitude saat check-in
-  checkOutLatitude  Float? // Latitude saat check-out
-  checkOutLongitude Float? // Longitude saat check-out
-  status            String   @default("present") // present, absent, late, half_day, etc.
-  notes             String? // Catatan tambahan
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  date              DateTime 
+  checkInTime       DateTime? 
+  checkOutTime      DateTime? 
+  checkInLatitude   Float? 
+  checkInLongitude  Float? 
+  checkOutLatitude  Float? 
+  checkOutLongitude Float? 
+  status            String    @default("present") 
+  notes             String? 
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -49,8 +47,7 @@ model Attendance {
   // Indexes
   @@index([userId])
   @@index([date])
-  @@index([userId, date]) // Composite index untuk query berdasarkan user dan tanggal
-
+  @@index([userId, date]) 
   @@map("attendances")
 }
 
@@ -64,9 +61,8 @@ model Permission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
- user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@map("permissions")
 }
-

@@ -2,22 +2,14 @@ import { auth } from "@/lib/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-export default auth((req) => {
+export default auth((req: NextRequest & { auth: any | null }) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
   const isAuthenticated = !!session;
 
   console.log("Middleware:", pathname, "Auth:", isAuthenticated);
 
-  // ✅ TAMBAHKAN /profile ke public paths
-  const publicPaths = [
-    "/login",
-    "/register",
-    "/profile", // ✅ TAMBAHKAN INI
-    "/profile/detail", // ✅ TAMBAHKAN INI
-    "/",
-    "/favicon.ico",
-  ];
+  const publicPaths = ["/login", "/register", "/profile", "/profile/detail", "/", "/favicon.ico"];
 
   const isPublicPath = publicPaths.some((path) => pathname === path || pathname.startsWith(path + "/")) || pathname.startsWith("/_next/") || pathname.startsWith("/api/") || pathname.includes(".");
 
