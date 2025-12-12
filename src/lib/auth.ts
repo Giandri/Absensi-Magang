@@ -1,10 +1,10 @@
-import NextAuth from "next-auth";
+import { getServerSession } from "next-auth";
 import { authOptions as baseAuthOptions } from "@/lib/auth/auth.config";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions = {
     ...baseAuthOptions,
     providers: [
         CredentialsProvider({
@@ -41,4 +41,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
         }),
     ],
-});
+};
+
+export const auth = () => getServerSession(authOptions);
