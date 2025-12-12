@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Fallback kalau dipanggil dari admin atau debug
     if (!userId) {
       const { searchParams } = new URL(request.url);
-      userId = searchParams.get("userId");
+      userId = searchParams.get("userId") ?? undefined;
     }
 
     if (!userId) {
