@@ -59,10 +59,19 @@ export async function POST(request: NextRequest) {
 
         const dateForRecord = todayWIB;
 
-        const lateThreshold = new Date(dateForRecord);
-        lateThreshold.setHours(8, 0, 0, 0);
+        // Check Late Status using WIB Timezone
+        // 08:00 WIB is the threshold
+        const wibTime = checkInTime.toLocaleTimeString("en-US", {
+          timeZone: "Asia/Jakarta",
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+        const [wibHour, wibMinute] = wibTime.split(":").map(Number);
 
-        const status = checkInTime > lateThreshold ? "late" : "present";
+        // Late if > 08:00
+        const isLate = wibHour > 8 || (wibHour === 8 && wibMinute > 0);
+        const status = isLate ? "late" : "present";
 
         existingAttendance = await prisma.attendance.create({
           data: {
