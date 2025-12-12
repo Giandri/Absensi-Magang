@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       const { searchParams } = new URL(request.url);
-      userId = searchParams.get("userId");
+      userId = searchParams.get("userId") ?? undefined;
     }
 
     // Fallback: get first user
