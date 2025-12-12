@@ -106,12 +106,13 @@ export async function POST(request: NextRequest) {
       const MIN_DURATION = 28830000;
 
       if (durationMs < MIN_DURATION) {
+        // Calculate remaining time for better UX
         const remainingMs = MIN_DURATION - durationMs;
         const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
         const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
 
         return NextResponse.json({
-          message: `Gagal absen pulang. Minimal kerja 8 jam 30 detik.`
+          message: `Gagal absen pulang. Minimal kerja 8 jam 30 detik. Kurang waktu: ${remainingHours} jam ${remainingMinutes} menit. kamu harus membayar keterlambatan mu.`
         }, { status: 400 });
       }
 
