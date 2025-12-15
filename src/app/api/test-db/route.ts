@@ -14,9 +14,9 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("📧 Email dari session:", session.user.email); // Cek emailnya apa
+    console.log("📧 Email dari session:", session.user.email); 
 
-    // Ambil HANYA nama, email, dan phone
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: {

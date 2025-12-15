@@ -1,24 +1,14 @@
-/**
- * Reverse Geocoding Utility
- * Mengkonversi koordinat lat/lng menjadi nama lokasi
- */
-
-// Konfigurasi lokasi kantor
 const OFFICE_CONFIG = {
     name: process.env.NEXT_PUBLIC_OFFICE_NAME || "Kantor BWS BABEL",
     latitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LAT || "-2.1360196129894264"),
     longitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LNG || "106.0848296111155"),
-    radius: parseInt(process.env.NEXT_PUBLIC_MAX_RADIUS || "100", 10), // dalam meter
+    radius: parseInt(process.env.NEXT_PUBLIC_MAX_RADIUS || "100", 10), // Meter
 };
 
-/**
- * Hitung jarak antara dua koordinat menggunakan formula Haversine
- * @returns Jarak dalam meter
- */
+
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const toRad = (value: number) => (value * Math.PI) / 180;
-    const R = 6371000; // Radius bumi dalam meter
-
+    const R = 6371000;
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lng2 - lng1);
     const a =
@@ -29,9 +19,7 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
     return Math.round(R * c);
 }
 
-/**
- * Cek apakah koordinat berada dalam radius kantor
- */
+
 function isWithinOfficeRadius(latitude: number, longitude: number): boolean {
     const distance = calculateDistance(
         latitude,
@@ -62,9 +50,6 @@ interface LocationResult {
     city: string;
 }
 
-/**
- * Konversi koordinat ke nama lokasi menggunakan Nominatim
- */
 async function reverseGeocode(
     latitude: number,
     longitude: number
@@ -104,24 +89,17 @@ async function reverseGeocode(
     }
 }
 
-/**
- * Format koordinat ke nama lokasi
- * - Jika dalam radius kantor: tampilkan nama kantor (mis: "Kantor BWS BABEL")
- * - Jika di luar radius: gunakan reverse geocoding
- * - Fallback: format koordinat
- */
 export async function getLocationName(
     latitude: number | null,
     longitude: number | null
 ): Promise<string> {
     if (!latitude || !longitude) return "N/A";
 
-    // Cek apakah dalam radius kantor
+
     if (isWithinOfficeRadius(latitude, longitude)) {
         return OFFICE_CONFIG.name;
     }
 
-    // Jika di luar kantor, gunakan reverse geocoding
     try {
         const location = await reverseGeocode(latitude, longitude);
         if (location) {
@@ -131,11 +109,7 @@ export async function getLocationName(
         console.error("Error getting location name:", error);
     }
 
-    // Fallback ke format koordinat
     return `${Math.abs(latitude).toFixed(4)}°${latitude >= 0 ? "N" : "S"}, ${Math.abs(longitude).toFixed(4)}°${longitude >= 0 ? "E" : "W"}`;
 }
 
-/**
- * Export konfigurasi kantor untuk digunakan di tempat lain
- */
 export { OFFICE_CONFIG };

@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
       userId = searchParams.get("userId") ?? undefined;
     }
 
-    // Fallback: get first user
     if (!userId) {
       const firstUser = await prisma.user.findFirst();
       userId = firstUser?.id;
@@ -31,8 +30,6 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
-
-    // ✅ AMBIL ATTENDANCE DAN PERMISSION SECARA BERSAMAAN
     const [attendances, permissions, totalAttendance, totalPermission] = await Promise.all([
       prisma.attendance.findMany({
         where: { userId },
@@ -66,7 +63,7 @@ export async function GET(request: NextRequest) {
       prisma.permission.count({ where: { userId } }),
     ]);
 
-    // ✅ FORMAT ATTENDANCE
+
     const formattedAttendances = attendances.map((attendance) => {
       const date = new Date(attendance.date);
       const checkInTime = attendance.checkInTime ? new Date(attendance.checkInTime) : null;
@@ -74,29 +71,29 @@ export async function GET(request: NextRequest) {
 
       return {
         id: attendance.id,
-        type: "attendance", // ✅ Penanda tipe
+        type: "attendance", 
         date: date.toLocaleDateString("id-ID", {
           weekday: "long",
           day: "numeric",
           month: "long",
           year: "numeric",
-          timeZone: "Asia/Jakarta", // Enforce WIB
+          timeZone: "Asia/Jakarta", 
         }),
         dateISO: date.toISOString().split("T")[0],
-        dateTimestamp: date.getTime(), // ✅ Untuk sorting
+        dateTimestamp: date.getTime(), 
         status: attendance.status,
         checkIn: checkInTime
           ? checkInTime.toLocaleTimeString("id-ID", {
             hour: "2-digit",
             minute: "2-digit",
-            timeZone: "Asia/Jakarta", // Enforce WIB
+            timeZone: "Asia/Jakarta", 
           })
           : null,
         checkOut: checkOutTime
           ? checkOutTime.toLocaleTimeString("id-ID", {
             hour: "2-digit",
             minute: "2-digit",
-            timeZone: "Asia/Jakarta", // Enforce WIB
+            timeZone: "Asia/Jakarta", 
           })
           : null,
         checkInLocation:

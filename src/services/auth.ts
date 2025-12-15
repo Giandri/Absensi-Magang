@@ -137,7 +137,7 @@ export async function submitPermission(data: PermissionRequest): Promise<Permiss
     console.log("✅ Permission success:", response.data);
     return response.data;
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.response?.data?.message || err.message || "Gagal mengajukan permission";
+    const msg = err.response?.data?.error || err.response?.data?.message || err.message || "Gagal mengajukan izin";
     console.error("❌ Permission error:", msg);
     console.error("❌ Full error:", err.response?.data || err);
     throw new Error(msg);
@@ -151,7 +151,7 @@ export async function getUserPermissions(userId: string) {
     });
     return response.data;
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.response?.data?.message || "Gagal mengambil riwayat permission";
+    const msg = err.response?.data?.error || err.response?.data?.message || "Gagal mengambil riwayat izin";
     throw new Error(msg);
   }
 }
@@ -163,7 +163,7 @@ export async function getTodayPermission(userId: string) {
     });
     return response.data;
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.response?.data?.message || "Gagal mengecek permission hari ini";
+    const msg = err.response?.data?.error || err.response?.data?.message || "Gagal mengecek izin hari ini";
     throw new Error(msg);
   }
 }
@@ -202,7 +202,7 @@ export async function updateUserProfile(data: UpdateProfileRequest): Promise<Use
     console.log("✅ Profile updated:", response.data);
     return response.data.data;
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Gagal update profile";
+    const msg = err.response?.data?.error || err.message || "Gagal perbarui profile";
     console.error("❌ Update profile error:", msg);
     throw new Error(msg);
   }
