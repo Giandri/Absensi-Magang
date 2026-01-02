@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, BarChart3, Activity, LogOut, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, BarChart3, Activity, LogOut, Users, FileSpreadsheet } from "lucide-react";
 import Image from "next/image";
 
 interface SidebarProps {
@@ -28,6 +28,12 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       icon: Activity,
       label: "Monitoring Kehadiran",
       isActive: pathname === "/dashboard/attendance-monitoring",
+    },
+    {
+      href: "/dashboard/rekap-absen",
+      icon: FileSpreadsheet,
+      label: "Rekap Absensi",
+      isActive: pathname === "/dashboard/rekap-absen",
     },
     {
       href: "/dashboard/employees",

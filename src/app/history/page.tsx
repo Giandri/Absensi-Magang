@@ -1,14 +1,66 @@
 "use client";
 
-import { useState, Suspense, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import { useAttendanceHistory } from "@/hooks/auth";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import { Calendar, FileText, Stethoscope } from "lucide-react";
+import { Calendar, FileText, Stethoscope, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type FilterMode = "week" | "month";
+
+// Helper function to get week range (Monday to Sunday) for a given date
+const getWeekRange = (date: Date): { start: Date; end: Date } => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Adjust to Monday
+
+  const start = new Date(d);
+  start.setDate(d.getDate() + diff);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+};
+
+// Format week range label
+const formatWeekLabel = (start: Date, end: Date): string => {
+  const startLabel = start.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  const endLabel = end.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  return `${startLabel} - ${endLabel}`;
+};
+
+// Helper function to get month range for a given date
+const getMonthRange = (date: Date): { start: Date; end: Date } => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+};
+
+// Format month label
+const formatMonthLabel = (date: Date): string => {
+  return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+};
+
+// Get initial week range (current week)
+const getInitialWeekRange = () => getWeekRange(new Date());
+
+// Get initial month range (current month)
+const getInitialMonthRange = () => getMonthRange(new Date());
 
 type LatLng = { latitude: number; longitude: number };
 
@@ -104,8 +156,35 @@ const getAbsenceLocation = (absence: Absence): { coords: LatLng | null; label: s
 export default function AbsenceDetailDrawer() {
   const [open, setOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
+  const [filterMode, setFilterMode] = useState<FilterMode>("week");
+  const [weekRange, setWeekRange] = useState<{ start: Date; end: Date }>(getInitialWeekRange());
+  const [selectedWeekDate, setSelectedWeekDate] = useState<Date | undefined>(new Date());
+  const [weekCalendarOpen, setWeekCalendarOpen] = useState(false);
+  const [monthRange, setMonthRange] = useState<{ start: Date; end: Date }>(getInitialMonthRange());
+  const [selectedMonthDate, setSelectedMonthDate] = useState<Date | undefined>(new Date());
+  const [monthCalendarOpen, setMonthCalendarOpen] = useState(false);
 
   const { data: session } = useSession();
+
+  // Handle date selection from week calendar
+  const handleWeekDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedWeekDate(date);
+      const range = getWeekRange(date);
+      setWeekRange(range);
+      setWeekCalendarOpen(false);
+    }
+  };
+
+  // Handle date selection from month calendar
+  const handleMonthDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedMonthDate(date);
+      const range = getMonthRange(date);
+      setMonthRange(range);
+      setMonthCalendarOpen(false);
+    }
+  };
   const userId = useMemo(() => {
     if (session?.user?.id) return session.user.id;
     if (typeof window !== "undefined") {
@@ -122,10 +201,34 @@ export default function AbsenceDetailDrawer() {
     return null;
   }, [session]);
 
-  const { data: historyData, isLoading, error } = useAttendanceHistory(userId || undefined, 1, 20);
+  const { data: historyData, isLoading, error } = useAttendanceHistory(userId || undefined, 1, 100);
 
-  const historyItems: HistoryItem[] = historyData?.data?.history || [];
+  const allHistoryItems: HistoryItem[] = historyData?.data?.history || [];
   const summary = historyData?.data?.summary;
+
+  // Filter history items based on selected week or month
+  const historyItems = useMemo(() => {
+    if (filterMode === "week") {
+      return allHistoryItems.filter((item) => {
+        const itemDate = new Date(item.dateISO);
+        return itemDate >= weekRange.start && itemDate <= weekRange.end;
+      });
+    } else {
+      return allHistoryItems.filter((item) => {
+        const itemDate = new Date(item.dateISO);
+        return itemDate >= monthRange.start && itemDate <= monthRange.end;
+      });
+    }
+  }, [allHistoryItems, filterMode, weekRange, monthRange]);
+
+  // Get selected filter label for display
+  const selectedFilterLabel = useMemo(() => {
+    if (filterMode === "week") {
+      return formatWeekLabel(weekRange.start, weekRange.end);
+    } else {
+      return formatMonthLabel(monthRange.start);
+    }
+  }, [filterMode, weekRange, monthRange]);
 
   const handleOpenDetail = (item: HistoryItem) => {
     setSelectedItem(item);
@@ -153,6 +256,49 @@ export default function AbsenceDetailDrawer() {
               )}
             </div>
 
+            {/* Filter Mode Tabs */}
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setFilterMode("week")}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${filterMode === "week" ? "bg-yellow-400 text-black shadow-sm" : "bg-white text-gray-600 hover:bg-gray-50"}`}>
+                Minggu
+              </button>
+              <button
+                onClick={() => setFilterMode("month")}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${filterMode === "month" ? "bg-yellow-400 text-black shadow-sm" : "bg-white text-gray-600 hover:bg-gray-50"}`}>
+                Bulan
+              </button>
+            </div>
+
+            {/* Filter Dropdown */}
+            <div className="mb-4">
+              {filterMode === "week" ? (
+                <Popover open={weekCalendarOpen} onOpenChange={setWeekCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-white", !selectedWeekDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formatWeekLabel(weekRange.start, weekRange.end)}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent mode="single" selected={selectedWeekDate} onSelect={handleWeekDateSelect} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <Popover open={monthCalendarOpen} onOpenChange={setMonthCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal bg-white", !selectedMonthDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formatMonthLabel(monthRange.start)}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent mode="single" selected={selectedMonthDate} onSelect={handleMonthDateSelect} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                 <p className="text-red-700 text-sm">Gagal memuat riwayat: {error.message}</p>
@@ -161,7 +307,7 @@ export default function AbsenceDetailDrawer() {
 
             {!error && historyItems.length === 0 && (
               <div className="text-center py-8">
-                <p className="text-gray-500">Belum ada riwayat</p>
+                <p className="text-gray-500">Tidak ada riwayat untuk {selectedFilterLabel}</p>
               </div>
             )}
 
@@ -254,8 +400,9 @@ export default function AbsenceDetailDrawer() {
                   <>
                     <div className="flex justify-end mb-6">
                       <span
-                        className={`text-white px-5 py-1.5 rounded-full text-sm font-medium ${selectedItem.status === "present" ? "bg-green-500" : selectedItem.status === "late" ? "bg-yellow-500" : selectedItem.status === "absent" ? "bg-red-500" : "bg-gray-500"
-                          }`}>
+                        className={`text-white px-5 py-1.5 rounded-full text-sm font-medium ${
+                          selectedItem.status === "present" ? "bg-green-500" : selectedItem.status === "late" ? "bg-yellow-500" : selectedItem.status === "absent" ? "bg-red-500" : "bg-gray-500"
+                        }`}>
                         {selectedItem.status === "present" ? "Hadir" : selectedItem.status === "late" ? "Terlambat" : selectedItem.status === "absent" ? "Tidak Hadir" : selectedItem.status}
                       </span>
                     </div>

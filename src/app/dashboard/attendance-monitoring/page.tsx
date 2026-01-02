@@ -26,6 +26,9 @@ interface AbsentUser {
   employee: string;
   email: string;
   status: string;
+  permissionType?: string | null;
+  permissionNote?: string | null;
+  permissionStatus?: string | null;
 }
 
 interface Stats {
@@ -73,11 +76,21 @@ function TableRowSkeleton() {
           </div>
         </div>
       </td>
-      <td className="py-3 px-4"><Skeleton className="h-4 w-16" /></td>
-      <td className="py-3 px-4"><Skeleton className="h-4 w-16" /></td>
-      <td className="py-3 px-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
-      <td className="py-3 px-4"><Skeleton className="h-4 w-20" /></td>
-      <td className="py-3 px-4"><Skeleton className="h-4 w-32" /></td>
+      <td className="py-3 px-4">
+        <Skeleton className="h-4 w-16" />
+      </td>
+      <td className="py-3 px-4">
+        <Skeleton className="h-4 w-16" />
+      </td>
+      <td className="py-3 px-4">
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </td>
+      <td className="py-3 px-4">
+        <Skeleton className="h-4 w-20" />
+      </td>
+      <td className="py-3 px-4">
+        <Skeleton className="h-4 w-32" />
+      </td>
     </tr>
   );
 }
@@ -113,7 +126,7 @@ export default function AttendanceMonitoringPage() {
     fetchData();
   }, [selectedDate]);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, permissionType?: string | null) => {
     switch (status) {
       case "present":
         return <Badge className="bg-green-100 text-green-800">Hadir</Badge>;
@@ -121,6 +134,8 @@ export default function AttendanceMonitoringPage() {
         return <Badge className="bg-yellow-100 text-yellow-800">Terlambat</Badge>;
       case "absent":
         return <Badge className="bg-red-100 text-red-800">Tidak Hadir</Badge>;
+      case "permission":
+        return <Badge className="bg-blue-100 text-blue-800">{permissionType || "Izin"}</Badge>;
       default:
         return <Badge variant="secondary">Unknown</Badge>;
     }
@@ -128,20 +143,21 @@ export default function AttendanceMonitoringPage() {
 
   const allEmployees = data
     ? [
-      ...data.attendance,
-      ...data.absentUsers.map((u) => ({
-        id: u.id,
-        employee: u.employee,
-        email: u.email,
-        userId: u.id,
-        checkIn: null,
-        checkOut: null,
-        status: "absent",
-        location: "N/A",
-        workHours: "0j 0m",
-        notes: "",
-      })),
-    ]
+        ...data.attendance.map((a) => ({ ...a, permissionType: null as string | null })),
+        ...data.absentUsers.map((u) => ({
+          id: u.id,
+          employee: u.employee,
+          email: u.email,
+          userId: u.id,
+          checkIn: null,
+          checkOut: null,
+          status: u.status,
+          location: "N/A",
+          workHours: "0j 0m",
+          notes: "",
+          permissionType: u.permissionType || null,
+        })),
+      ]
     : [];
 
   return (
@@ -170,12 +186,7 @@ export default function AttendanceMonitoringPage() {
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
+                  <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400" />
                 </div>
               </div>
             </CardContent>
@@ -199,56 +210,58 @@ export default function AttendanceMonitoringPage() {
                 <StatsCardSkeleton />
                 <StatsCardSkeleton />
               </>
-            ) : data && (
-              <>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Total Pemagang</p>
-                        <p className="text-2xl font-bold">{data.stats.totalEmployees}</p>
+            ) : (
+              data && (
+                <>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Total Pemagang</p>
+                          <p className="text-2xl font-bold">{data.stats.totalEmployees}</p>
+                        </div>
+                        <Users className="h-8 w-8 text-blue-600" />
                       </div>
-                      <Users className="h-8 w-8 text-blue-600" />
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Hadir Hari Ini</p>
-                        <p className="text-2xl font-bold text-green-600">{data.stats.presentToday}</p>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Hadir Hari Ini</p>
+                          <p className="text-2xl font-bold text-green-600">{data.stats.presentToday}</p>
+                        </div>
+                        <CheckCircle className="h-8 w-8 text-green-600" />
                       </div>
-                      <CheckCircle className="h-8 w-8 text-green-600" />
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Terlambat</p>
-                        <p className="text-2xl font-bold text-yellow-600">{data.stats.lateToday}</p>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Terlambat</p>
+                          <p className="text-2xl font-bold text-yellow-600">{data.stats.lateToday}</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-yellow-600" />
                       </div>
-                      <AlertTriangle className="h-8 w-8 text-yellow-600" />
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Tidak Hadir</p>
-                        <p className="text-2xl font-bold text-red-600">{data.stats.absentToday}</p>
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Tidak Hadir</p>
+                          <p className="text-2xl font-bold text-red-600">{data.stats.absentToday}</p>
+                        </div>
+                        <XCircle className="h-8 w-8 text-red-600" />
                       </div>
-                      <XCircle className="h-8 w-8 text-red-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
+                    </CardContent>
+                  </Card>
+                </>
+              )
             )}
           </div>
 
@@ -256,9 +269,7 @@ export default function AttendanceMonitoringPage() {
           <Card>
             <CardHeader>
               <CardTitle>Kehadiran Hari Ini</CardTitle>
-              <CardDescription>
-                Data kehadiran untuk {new Date(selectedDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-              </CardDescription>
+              <CardDescription>Data kehadiran untuk {new Date(selectedDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -311,20 +322,16 @@ export default function AttendanceMonitoringPage() {
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-400" />
-                              <span className={employee.checkIn ? "text-gray-900" : "text-gray-400"}>
-                                {employee.checkIn || "Belum absen"}
-                              </span>
+                              <span className={employee.checkIn ? "text-gray-900" : "text-gray-400"}>{employee.checkIn || "Belum absen"}</span>
                             </div>
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4 text-gray-400" />
-                              <span className={employee.checkOut ? "text-gray-900" : "text-gray-400"}>
-                                {employee.checkOut || "Belum pulang"}
-                              </span>
+                              <span className={employee.checkOut ? "text-gray-900" : "text-gray-400"}>{employee.checkOut || "Belum pulang"}</span>
                             </div>
                           </td>
-                          <td className="py-3 px-4">{getStatusBadge(employee.status)}</td>
+                          <td className="py-3 px-4">{getStatusBadge(employee.status, employee.permissionType)}</td>
                           <td className="py-3 px-4 text-gray-900">{employee.workHours}</td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">

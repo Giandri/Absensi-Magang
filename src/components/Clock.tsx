@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useSubmitAttendance, useTodayAttendance, useTodayPermission } from "@/hooks/auth";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import { FileText, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 const Maps = dynamic(() => import("./Maps"), {
   ssr: false,
@@ -19,14 +19,90 @@ const Maps = dynamic(() => import("./Maps"), {
   ),
 });
 
-{/* KONFIGURASI LOKASI KANTOR & RADIUS */ }
+{
+  /* HOOK UNTUK CEK HARI LIBUR DAN WEEKEND */
+}
+interface HolidayInfo {
+  isHoliday: boolean;
+  isWeekend: boolean;
+  holidayName: string | null;
+  isLoading: boolean;
+}
+
+const useHolidayCheck = (): HolidayInfo => {
+  const [holidayInfo, setHolidayInfo] = useState<HolidayInfo>({
+    isHoliday: false,
+    isWeekend: false,
+    holidayName: null,
+    isLoading: true,
+  });
+
+  useEffect(() => {
+    const checkHoliday = async () => {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+
+      // Check weekend (0 = Sunday, 6 = Saturday)
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        setHolidayInfo({
+          isHoliday: false,
+          isWeekend: true,
+          holidayName: dayOfWeek === 0 ? "Minggu" : "Sabtu",
+          isLoading: false,
+        });
+        return;
+      }
+
+      // Check national holiday from API
+      try {
+        const year = today.getFullYear();
+        const response = await fetch(`https://libur.deno.dev/api?year=${year}`);
+        if (response.ok) {
+          const holidays = await response.json();
+          const todayStr = today.toISOString().split("T")[0];
+          const holiday = holidays.find((h: any) => h.date === todayStr);
+
+          if (holiday) {
+            setHolidayInfo({
+              isHoliday: true,
+              isWeekend: false,
+              holidayName: holiday.name || "Hari Libur Nasional",
+              isLoading: false,
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching holidays:", error);
+      }
+
+      // Regular workday
+      setHolidayInfo({
+        isHoliday: false,
+        isWeekend: false,
+        holidayName: null,
+        isLoading: false,
+      });
+    };
+
+    checkHoliday();
+  }, []);
+
+  return holidayInfo;
+};
+
+{
+  /* KONFIGURASI LOKASI KANTOR & RADIUS */
+}
 const OFFICE_LOCATION = {
   latitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LAT || "-2.1360196129894264"),
   longitude: parseFloat(process.env.NEXT_PUBLIC_OFFICE_LNG || "106.0848296111155"),
 };
 const MAX_DISTANCE_METERS = parseInt(process.env.NEXT_PUBLIC_MAX_RADIUS || "100", 10);
 
-{/* HITUNG JARAK */ }
+{
+  /* HITUNG JARAK */
+}
 const getDistanceFromOffice = (userLat: number, userLng: number): number => {
   const toRad = (value: number) => (value * Math.PI) / 180;
   const R = 6371000;
@@ -41,7 +117,6 @@ const getDistanceFromOffice = (userLat: number, userLng: number): number => {
 
   return Math.round(R * c);
 };
-
 
 const useGeolocation = () => {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -79,7 +154,9 @@ const useGeolocation = () => {
   return { location, error, loading };
 };
 
-{/* SKELETON */ }
+{
+  /* SKELETON */
+}
 const ClockSkeleton = () => (
   <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl p-6 shadow-xl">
     <Skeleton className="h-4 w-32 mb-2 bg-slate-600" />
@@ -125,7 +202,7 @@ export default function Clock() {
       try {
         const data = localStorage.getItem("user-data");
         if (data) return JSON.parse(data).id;
-      } catch { }
+      } catch {}
     }
     return null;
   }, [session]);
@@ -136,7 +213,13 @@ export default function Clock() {
   const hasPermissionToday = !!todayPermission?.hasPermission;
   const permissionType = todayPermission?.permission?.type;
 
-  {/* REDIRECT LOGIN */ }
+  // Check if today is holiday or weekend
+  const holidayInfo = useHolidayCheck();
+  const isOffDay = holidayInfo.isHoliday || holidayInfo.isWeekend;
+
+  {
+    /* REDIRECT LOGIN */
+  }
   useEffect(() => {
     if (status === "loading") return;
     if (session?.user) return;
@@ -148,7 +231,6 @@ export default function Clock() {
     }
     router.push("/login?callbackUrl=/");
   }, [session, status, router]);
-
 
   useEffect(() => {
     const timer = setTimeout(() => setIsTimeLoaded(true), 1200);
@@ -174,8 +256,18 @@ export default function Clock() {
     return { isAllowed: distance <= MAX_DISTANCE_METERS, distance };
   };
 
-  {/* CLOCK IN */ }
+  {
+    /* CLOCK IN */
+  }
   const handleCheckIn = () => {
+    if (isOffDay) {
+      toast.info("Hari Libur", {
+        description: `Tidak perlu absen hari ${holidayInfo.holidayName}`,
+        duration: 4000,
+      });
+      return;
+    }
+
     if (hasPermissionToday) {
       const typeLabel = permissionType === "izin" ? "Izin" : permissionType === "sakit" ? "Sakit" : "Libur";
       toast.error("Tidak bisa absen", {
@@ -228,8 +320,18 @@ export default function Clock() {
     );
   };
 
-  {/* CLOCK OUT */ }
+  {
+    /* CLOCK OUT */
+  }
   const handleCheckOut = () => {
+    if (isOffDay) {
+      toast.info("Hari Libur", {
+        description: `Tidak perlu absen hari ${holidayInfo.holidayName}`,
+        duration: 4000,
+      });
+      return;
+    }
+
     if (!clockOutLocation.location) {
       toast.error("Lokasi belum tersedia");
       return;
@@ -270,12 +372,12 @@ export default function Clock() {
       <p className="text-sm opacity-90 mb-2">{formatDate(currentTime)}</p>
       <div className="text-center mb-6">
         <div className="text-4xl md:text-7xl sm:text-6xl  font-bold tracking-wider">{formatTime(currentTime)}</div>
-        {hasPermissionToday ? (
+        {isOffDay ? (
+          <p className={`text-sm mt-3 ${holidayInfo.isHoliday ? "text-purple-300" : "text-blue-300"}`}>{holidayInfo.isHoliday ? holidayInfo.holidayName : `Hari ${holidayInfo.holidayName} - Selamat beristirahat!`}</p>
+        ) : hasPermissionToday ? (
           <div className="flex items-center justify-center gap-2 mt-3">
             <AlertCircle className="w-4 h-4 text-amber-400" />
-            <p className="text-amber-300 text-sm">
-              Anda sudah mengajukan {permissionType === "izin" ? "Izin" : permissionType === "sakit" ? "Sakit" : "Libur"} hari ini
-            </p>
+            <p className="text-amber-300 text-sm">Anda sudah mengajukan {permissionType === "izin" ? "Izin" : permissionType === "sakit" ? "Sakit" : "Libur"} hari ini</p>
           </div>
         ) : (
           <p className="text-slate-300 text-sm mt-3">Jangan lupa absen ya!</p>
@@ -285,19 +387,32 @@ export default function Clock() {
       {/* Tombol Absen */}
       <div className="grid grid-cols-2 gap-4">
         <button
-          onClick={() => hasPermissionToday ? toast.error("Tidak bisa absen", { description: `Anda sudah ${permissionType} hari ini` }) : setOpenClockIn(true)}
-          disabled={hasPermissionToday}
-          className={`rounded-xl py-6 flex flex-col items-center transition active:scale-95 ${hasPermissionToday
-            ? "bg-gray-200 opacity-60 cursor-not-allowed"
-            : todayAttendance?.attendance?.checkInTime
+          onClick={() => {
+            if (isOffDay) {
+              toast.info("Hari Libur", { description: `Tidak perlu absen hari ${holidayInfo.holidayName}` });
+            } else if (hasPermissionToday) {
+              toast.error("Tidak bisa absen", { description: `Anda sudah ${permissionType} hari ini` });
+            } else {
+              setOpenClockIn(true);
+            }
+          }}
+          disabled={isOffDay || hasPermissionToday}
+          className={`rounded-xl py-6 flex flex-col items-center transition active:scale-95 ${
+            isOffDay
+              ? "bg-purple-100 opacity-70 cursor-not-allowed"
+              : hasPermissionToday
+              ? "bg-gray-200 opacity-60 cursor-not-allowed"
+              : todayAttendance?.attendance?.checkInTime
               ? "bg-green-50 border-2 border-green-200"
               : "bg-white hover:bg-gray-50"
-            }`}>
-          <svg className={`w-12 h-12 mb-2 ${todayAttendance?.attendance?.checkInTime ? "text-green-600" : "text-slate-700"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          }`}>
+          <svg className={`w-12 h-12 mb-2 ${isOffDay ? "text-purple-400" : todayAttendance?.attendance?.checkInTime ? "text-green-600" : "text-slate-700"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
           </svg>
-          <span className={`font-semibold ${todayAttendance?.attendance?.checkInTime ? "text-green-700" : "text-slate-800"}`}>Jam Masuk</span>
-          {todayAttendance?.attendance?.checkInTime ? (
+          <span className={`font-semibold ${isOffDay ? "text-purple-600" : todayAttendance?.attendance?.checkInTime ? "text-green-700" : "text-slate-800"}`}>Jam Masuk</span>
+          {isOffDay ? (
+            <span className="text-purple-500 text-xs mt-1">Hari Libur</span>
+          ) : todayAttendance?.attendance?.checkInTime ? (
             <span className="text-green-600 text-sm font-bold mt-1">{formatTime(new Date(todayAttendance.attendance.checkInTime))}</span>
           ) : (
             <span className="text-gray-400 text-xs mt-1">Belum absen</span>
@@ -305,19 +420,32 @@ export default function Clock() {
         </button>
 
         <button
-          onClick={() => hasPermissionToday ? toast.error("Tidak bisa absen", { description: `Anda sudah ${permissionType} hari ini` }) : setOpenClockOut(true)}
-          disabled={hasPermissionToday}
-          className={`rounded-xl py-6 flex flex-col items-center transition active:scale-95 ${hasPermissionToday
-            ? "bg-gray-200 opacity-60 cursor-not-allowed"
-            : todayAttendance?.attendance?.checkOutTime
+          onClick={() => {
+            if (isOffDay) {
+              toast.info("Hari Libur", { description: `Tidak perlu absen hari ${holidayInfo.holidayName}` });
+            } else if (hasPermissionToday) {
+              toast.error("Tidak bisa absen", { description: `Anda sudah ${permissionType} hari ini` });
+            } else {
+              setOpenClockOut(true);
+            }
+          }}
+          disabled={isOffDay || hasPermissionToday}
+          className={`rounded-xl py-6 flex flex-col items-center transition active:scale-95 ${
+            isOffDay
+              ? "bg-purple-100 opacity-70 cursor-not-allowed"
+              : hasPermissionToday
+              ? "bg-gray-200 opacity-60 cursor-not-allowed"
+              : todayAttendance?.attendance?.checkOutTime
               ? "bg-blue-50 border-2 border-blue-200"
               : "bg-white hover:bg-gray-50"
-            }`}>
-          <svg className={`w-12 h-12 mb-2 ${todayAttendance?.attendance?.checkOutTime ? "text-blue-600" : "text-slate-700"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          }`}>
+          <svg className={`w-12 h-12 mb-2 ${isOffDay ? "text-purple-400" : todayAttendance?.attendance?.checkOutTime ? "text-blue-600" : "text-slate-700"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          <span className={`font-semibold ${todayAttendance?.attendance?.checkOutTime ? "text-blue-700" : "text-slate-800"}`}>Jam Pulang</span>
-          {todayAttendance?.attendance?.checkOutTime ? (
+          <span className={`font-semibold ${isOffDay ? "text-purple-600" : todayAttendance?.attendance?.checkOutTime ? "text-blue-700" : "text-slate-800"}`}>Jam Pulang</span>
+          {isOffDay ? (
+            <span className="text-purple-500 text-xs mt-1">Hari Libur</span>
+          ) : todayAttendance?.attendance?.checkOutTime ? (
             <span className="text-blue-600 text-sm font-bold mt-1">{formatTime(new Date(todayAttendance.attendance.checkOutTime))}</span>
           ) : (
             <span className="text-gray-400 text-xs mt-1">Belum absen</span>
@@ -390,10 +518,11 @@ export default function Clock() {
               <button
                 onClick={handleCheckIn}
                 disabled={!clockInLocation.location || attendanceMutation.isPending || (clockInLocation.location && !checkInRadius(clockInLocation.location).isAllowed)}
-                className={`w-full mt-4 py-2 rounded-xl font-semibold transition ${!clockInLocation.location || attendanceMutation.isPending || (clockInLocation.location && !checkInRadius(clockInLocation.location).isAllowed)
-                  ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700 text-white active:scale-95"
-                  }`}>
+                className={`w-full mt-4 py-2 rounded-xl font-semibold transition ${
+                  !clockInLocation.location || attendanceMutation.isPending || (clockInLocation.location && !checkInRadius(clockInLocation.location).isAllowed)
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white active:scale-95"
+                }`}>
                 {attendanceMutation.isPending && attendanceMutation.variables?.type === "checkin" ? "Menyimpan..." : "Konfirmasi Absen Masuk"}
               </button>
             </div>
@@ -461,12 +590,13 @@ export default function Clock() {
                 className={`
                 w-full mt-4 py-2 rounded-xl font-semibold  transition-all duration-200 
                 active:scale-95 shadow-xl select-none
-                 ${!clockOutLocation.location
-                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                    : attendanceMutation.isPending
-                      ? "bg-red-500 text-white cursor-wait"
-                      : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
-                  }
+                 ${
+                   !clockOutLocation.location
+                     ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                     : attendanceMutation.isPending
+                     ? "bg-red-500 text-white cursor-wait"
+                     : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                 }
                 `}>
                 {attendanceMutation.isPending && attendanceMutation.variables?.type === "checkout" ? "Menyimpan Absen Pulang..." : "Konfirmasi Absen Pulang"}
               </button>

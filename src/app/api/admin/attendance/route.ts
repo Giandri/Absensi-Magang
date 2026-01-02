@@ -104,10 +104,45 @@ export async function GET(request: NextRequest) {
         const lateCount = attendances.filter((a) => a.status === "late").length;
         const totalUsers = allUsers.length;
 
+        // Ambil permission untuk tanggal ini
+        const permissions = await prisma.permission.findMany({
+            where: {
+                date: {
+                    gte: targetDate,
+                    lt: nextDay,
+                },
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+            },
+        });
+
         // User yang tidak hadir (tidak ada record attendance)
         const presentUserIds = attendances.map((a) => a.userId);
-        const absentUsers = allUsers.filter((u) => !presentUserIds.includes(u.id));
-        const absentCount = absentUsers.length;
+        const absentUsersRaw = allUsers.filter((u) => !presentUserIds.includes(u.id));
+        
+        // Map absent users dengan info permission
+        const absentUsers = absentUsersRaw.map((u) => {
+            const userPermission = permissions.find((p) => p.userId === u.id);
+            return {
+                id: u.id,
+                employee: u.name || u.email,
+                email: u.email,
+                status: userPermission ? "permission" : "absent",
+                permissionType: userPermission?.type || null,
+                permissionNote: userPermission?.note || null,
+                permissionStatus: userPermission?.status || null,
+            };
+        });
+        
+        const absentCount = absentUsers.filter((u) => u.status === "absent").length;
+        const permissionCount = absentUsers.filter((u) => u.status === "permission").length;
 
         // Aktivitas terbaru (5 terakhir)
         const recentActivities = attendances.slice(0, 5).map((att) => ({
@@ -130,17 +165,13 @@ export async function GET(request: NextRequest) {
             data: {
                 date: targetDate.toISOString().split("T")[0],
                 attendance: formattedAttendance,
-                absentUsers: absentUsers.map((u) => ({
-                    id: u.id,
-                    employee: u.name || u.email,
-                    email: u.email,
-                    status: "absent",
-                })),
+                absentUsers: absentUsers,
                 stats: {
                     totalEmployees: totalUsers,
                     presentToday: presentCount,
                     lateToday: lateCount,
                     absentToday: absentCount,
+                    permissionToday: permissionCount,
                     attendanceRate: totalUsers > 0 ? Math.round((presentCount / totalUsers) * 100) : 0,
                 },
                 recentActivities,
