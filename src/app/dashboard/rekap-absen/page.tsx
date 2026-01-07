@@ -175,20 +175,11 @@ export default function RekapAbsenPage() {
     doc.setFont("helvetica", "bold");
     doc.text("Ringkasan Per Karyawan", 14, 40);
 
-    const summaryData = data.summary.map((user) => [
-      user.name,
-      user.present.toString(),
-      user.late.toString(),
-      user.permission.toString(),
-      user.absent.toString(),
-      user.holiday.toString(),
-      user.weekend.toString(),
-      user.totalWorkHours,
-    ]);
+    const summaryData = data.summary.map((user) => [user.name, user.present.toString(), user.late.toString(), user.permission.toString(), user.absent.toString(), user.holiday.toString(), user.weekend.toString(), user.totalWorkHours]);
 
     autoTable(doc, {
       startY: 45,
-      head: [["Nama", "Hadir", "Terlambat", "Izin", "Absen", "Libur", "Weekend", "Total Jam"]],
+      head: [["Nama", "Hadir", "Terlambat", "Izin", "Tidak Hadir", "Libur", "Total Jam"]],
       body: summaryData,
       theme: "grid",
       headStyles: { fillColor: [250, 204, 21], textColor: [0, 0, 0], fontStyle: "bold" },
@@ -200,8 +191,7 @@ export default function RekapAbsenPage() {
         3: { cellWidth: 18, halign: "center" },
         4: { cellWidth: 18, halign: "center" },
         5: { cellWidth: 18, halign: "center" },
-        6: { cellWidth: 20, halign: "center" },
-        7: { cellWidth: 22, halign: "center" },
+        6: { cellWidth: 22, halign: "center" },
       },
     });
 
@@ -235,7 +225,7 @@ export default function RekapAbsenPage() {
         else if (detail.permissionStatus === "pending") permStatusText = "Menunggu";
         else if (detail.permissionStatus === "rejected") permStatusText = "Ditolak";
 
-        const notesText = detail.status === "holiday" && detail.holidayName ? detail.holidayName : (detail.notes || "-");
+        const notesText = detail.status === "holiday" && detail.holidayName ? detail.holidayName : detail.notes || "-";
 
         return [
           new Date(detail.date).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" }),
@@ -250,7 +240,7 @@ export default function RekapAbsenPage() {
 
       autoTable(doc, {
         startY: currentY + 5,
-        head: [["Tanggal", "Status", "Status Izin", "Masuk", "Pulang", "Jam Kerja", "Catatan"]],
+        head: [["Tanggal", "Status", "Masuk", "Pulang", "Jam Kerja", "Catatan"]],
         body: detailData,
         theme: "striped",
         headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: "bold" },
@@ -261,8 +251,7 @@ export default function RekapAbsenPage() {
           2: { cellWidth: 22 },
           3: { cellWidth: 18, halign: "center" },
           4: { cellWidth: 18, halign: "center" },
-          5: { cellWidth: 20, halign: "center" },
-          6: { cellWidth: 47 },
+          5: { cellWidth: 47 },
         },
       });
 
@@ -303,7 +292,7 @@ export default function RekapAbsenPage() {
       case "permission":
         return <Badge className="bg-blue-100 text-blue-800">{permissionType || "Izin"}</Badge>;
       case "holiday":
-        return <Badge className="bg-purple-100 text-purple-800">🎉 Libur</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800">Libur</Badge>;
       case "weekend":
         return <Badge className="bg-gray-200 text-gray-700">{holidayName || "Akhir Pekan"}</Badge>;
       default:
@@ -371,13 +360,7 @@ export default function RekapAbsenPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Periode</label>
                   <div className="flex gap-2">
                     {(["daily", "weekly", "monthly"] as PeriodType[]).map((type) => (
-                      <Button
-                        key={type}
-                        variant={periodType === type ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setPeriodType(type)}
-                        className={periodType === type ? "bg-yellow-400 hover:bg-yellow-500 text-black" : ""}
-                      >
+                      <Button key={type} variant={periodType === type ? "default" : "outline"} size="sm" onClick={() => setPeriodType(type)} className={periodType === type ? "bg-yellow-400 hover:bg-yellow-500 text-black" : ""}>
                         {type === "daily" ? "Harian" : type === "weekly" ? "Mingguan" : "Bulanan"}
                       </Button>
                     ))}
@@ -387,21 +370,11 @@ export default function RekapAbsenPage() {
                 {/* Date Range */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
+                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
+                  <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400" />
                 </div>
 
                 {/* Refresh Button */}
@@ -487,8 +460,7 @@ export default function RekapAbsenPage() {
                 Rekap Per Karyawan
               </CardTitle>
               <CardDescription>
-                Periode: {new Date(startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} -{" "}
-                {new Date(endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                Periode: {new Date(startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} - {new Date(endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                 {data && ` (${data.totalDays} hari)`}
               </CardDescription>
             </CardHeader>
@@ -509,10 +481,7 @@ export default function RekapAbsenPage() {
                     return (
                       <div key={user.userId} className="border rounded-lg overflow-hidden">
                         {/* User Summary Row */}
-                        <div
-                          className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition"
-                          onClick={() => toggleUserExpand(user.userId)}
-                        >
+                        <div className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition" onClick={() => toggleUserExpand(user.userId)}>
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-sm font-medium text-black">
                               {user.name
@@ -595,11 +564,7 @@ export default function RekapAbsenPage() {
                                       </div>
                                     </td>
                                     <td className="py-2 px-3">{detail.status === "holiday" || detail.status === "weekend" ? "-" : detail.workHours}</td>
-                                    <td className="py-2 px-3 text-gray-600">
-                                      {detail.status === "holiday" && detail.holidayName ? (
-                                        <span className="text-purple-600 font-medium">{detail.holidayName}</span>
-                                      ) : detail.notes || "-"}
-                                    </td>
+                                    <td className="py-2 px-3 text-gray-600">{detail.status === "holiday" && detail.holidayName ? <span className="text-purple-600 font-medium">{detail.holidayName}</span> : detail.notes || "-"}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -618,4 +583,3 @@ export default function RekapAbsenPage() {
     </div>
   );
 }
-

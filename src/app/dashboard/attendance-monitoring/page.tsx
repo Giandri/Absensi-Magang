@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertTriangle, Users, Filter, Download } from "lucide-react";
+import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertTriangle, Users, Filter, FileText } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
 interface AttendanceRecord {
@@ -36,6 +35,7 @@ interface Stats {
   presentToday: number;
   lateToday: number;
   absentToday: number;
+  permissionToday: number;
   attendanceRate: number;
 }
 
@@ -202,9 +202,10 @@ export default function AttendanceMonitoringPage() {
           )}
 
           {/* Summary Stats - Skeleton atau Data */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {loading ? (
               <>
+                <StatsCardSkeleton />
                 <StatsCardSkeleton />
                 <StatsCardSkeleton />
                 <StatsCardSkeleton />
@@ -245,6 +246,18 @@ export default function AttendanceMonitoringPage() {
                           <p className="text-2xl font-bold text-yellow-600">{data.stats.lateToday}</p>
                         </div>
                         <AlertTriangle className="h-8 w-8 text-yellow-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Izin</p>
+                          <p className="text-2xl font-bold text-blue-600">{data.stats.permissionToday}</p>
+                        </div>
+                        <FileText className="h-8 w-8 text-blue-600" />
                       </div>
                     </CardContent>
                   </Card>

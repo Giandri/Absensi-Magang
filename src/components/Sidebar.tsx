@@ -36,6 +36,12 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       isActive: pathname === "/dashboard/rekap-absen",
     },
     {
+      href: "/dashboard/kelola-pegawai",
+      icon: Users,
+      label: "Kelola Pegawai",
+      isActive: pathname === "/dashboard/kelola-pegawai",
+    },
+    {
       href: "/dashboard/employees",
       icon: Users,
       label: "Hubungi Peserta",

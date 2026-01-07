@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3, Users, TrendingUp, Activity, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { BarChart3, Users, TrendingUp, Activity, CheckCircle, XCircle, AlertCircle, FileText } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
 interface Stats {
@@ -11,6 +11,7 @@ interface Stats {
   presentToday: number;
   lateToday: number;
   absentToday: number;
+  permissionToday: number;
   attendanceRate: number;
 }
 
@@ -60,7 +61,7 @@ function ActivitySkeleton() {
 function ProgressBarSkeleton() {
   return (
     <div className="space-y-4">
-      {[1, 2, 3].map((i) => (
+      {[1, 2, 3, 4].map((i) => (
         <div key={i}>
           <div className="flex justify-between mb-1">
             <Skeleton className="h-4 w-16" />
@@ -113,6 +114,7 @@ export default function OverviewPage() {
     presentToday: 0,
     absentToday: 0,
     lateToday: 0,
+    permissionToday: 0,
     attendanceRate: 0,
   };
 
@@ -130,13 +132,7 @@ export default function OverviewPage() {
               <h1 className="text-3xl font-bold text-gray-900">Ringkasan Kehadiran</h1>
               <p className="text-gray-600 mt-1">Pantau cepat kehadiran peserta magang</p>
             </div>
-            <div className="text-sm text-gray-500">
-              {loading ? (
-                <Skeleton className="h-4 w-32" />
-              ) : (
-                `Terakhir diperbarui: ${new Date().toLocaleString("id-ID")}`
-              )}
-            </div>
+            <div className="text-sm text-gray-500">{loading ? <Skeleton className="h-4 w-32" /> : `Terakhir diperbarui: ${new Date().toLocaleString("id-ID")}`}</div>
           </div>
 
           {/* Error State */}
@@ -149,9 +145,10 @@ export default function OverviewPage() {
           )}
 
           {/* STAT */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             {loading ? (
               <>
+                <StatsCardSkeleton />
                 <StatsCardSkeleton />
                 <StatsCardSkeleton />
                 <StatsCardSkeleton />
@@ -183,23 +180,34 @@ export default function OverviewPage() {
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Tidak Hadir</CardTitle>
-                    <XCircle className="h-4 w-4 text-red-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-red-600">{stats.absentToday}</div>
-                    <p className="text-xs text-muted-foreground">Karyawan tidak hadir</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Terlambat</CardTitle>
                     <TrendingUp className="h-4 w-4 text-yellow-600" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-yellow-600">{stats.lateToday}</div>
                     <p className="text-xs text-muted-foreground">Karyawan terlambat hari ini</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Izin</CardTitle>
+                    <FileText className="h-4 w-4 text-blue-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-blue-600">{stats.permissionToday}</div>
+                    <p className="text-xs text-muted-foreground">Karyawan dengan izin</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Tidak Hadir</CardTitle>
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">{stats.absentToday}</div>
+                    <p className="text-xs text-muted-foreground">Karyawan tidak hadir</p>
                   </CardContent>
                 </Card>
               </>
@@ -228,10 +236,7 @@ export default function OverviewPage() {
                         <span className="text-green-600">{stats.presentToday} orang</span>
                       </div>
                       <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-green-500 rounded-full transition-all duration-500"
-                          style={{ width: `${stats.totalEmployees > 0 ? (stats.presentToday / stats.totalEmployees) * 100 : 0}%` }}
-                        />
+                        <div className="h-full bg-green-500 rounded-full transition-all duration-500" style={{ width: `${stats.totalEmployees > 0 ? (stats.presentToday / stats.totalEmployees) * 100 : 0}%` }} />
                       </div>
                     </div>
                     <div>
@@ -240,10 +245,7 @@ export default function OverviewPage() {
                         <span className="text-red-600">{stats.absentToday} orang</span>
                       </div>
                       <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-red-500 rounded-full transition-all duration-500"
-                          style={{ width: `${stats.totalEmployees > 0 ? (stats.absentToday / stats.totalEmployees) * 100 : 0}%` }}
-                        />
+                        <div className="h-full bg-red-500 rounded-full transition-all duration-500" style={{ width: `${stats.totalEmployees > 0 ? (stats.absentToday / stats.totalEmployees) * 100 : 0}%` }} />
                       </div>
                     </div>
                     <div>
@@ -252,10 +254,16 @@ export default function OverviewPage() {
                         <span className="text-yellow-600">{stats.lateToday} orang</span>
                       </div>
                       <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-yellow-500 rounded-full transition-all duration-500"
-                          style={{ width: `${stats.totalEmployees > 0 ? (stats.lateToday / stats.totalEmployees) * 100 : 0}%` }}
-                        />
+                        <div className="h-full bg-yellow-500 rounded-full transition-all duration-500" style={{ width: `${stats.totalEmployees > 0 ? (stats.lateToday / stats.totalEmployees) * 100 : 0}%` }} />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Izin</span>
+                        <span className="text-blue-600">{stats.permissionToday} orang</span>
+                      </div>
+                      <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${stats.totalEmployees > 0 ? (stats.permissionToday / stats.totalEmployees) * 100 : 0}%` }} />
                       </div>
                     </div>
                   </div>
