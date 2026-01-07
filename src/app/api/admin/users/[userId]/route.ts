@@ -5,8 +5,8 @@ import { authOptions } from "@/lib/auth/auth.config";
 import bcrypt from "bcryptjs";
 
 // TEMPORARY TEST ENDPOINT - REMOVE AUTH FOR DEBUGGING
-export async function GET(request: NextRequest, { params }: { params: { userId: string } }) {
-  const { userId } = params;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
+  const { userId } = await params;
   console.log("🔍 [TEST] Raw params:", params);
   console.log("🔍 [TEST] userId:", userId, "type:", typeof userId, "length:", userId?.length);
 
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
   });
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { userId: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   try {
     // TEMPORARILY DISABLE AUTH FOR DEBUGGING
     // const session = await getServerSession(authOptions);
@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest, { params }: { params: { userId: 
     //   return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     // }
 
-    const { userId } = params;
+    const { userId } = await params;
     console.log("🔍 [DEBUG] Raw params:", params);
     console.log("🔍 [DEBUG] userId:", userId, "type:", typeof userId, "length:", userId?.length);
 
@@ -133,7 +133,7 @@ export async function PUT(request: NextRequest, { params }: { params: { userId: 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { userId: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   try {
     // Check if user is admin
     const session = await getServerSession(authOptions);
@@ -141,7 +141,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { userI
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const { userId } = params;
+    const { userId } = await params;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({

@@ -140,10 +140,10 @@ export default function KelolaPegawaiPage() {
 
       if (response.ok) {
         console.log("📊 [FRONTEND] Users data received:", result.data);
-        result.data.forEach((user, index) => {
+        (result.data as User[]).forEach((user, index) => {
           console.log(`👤 [FRONTEND] User ${index}: id=${user.id}, name=${user.name}, email=${user.email}`);
         });
-        setUsers(result.data);
+        setUsers(result.data as User[]);
       } else {
         setError(result.message || "Gagal mengambil data");
       }
