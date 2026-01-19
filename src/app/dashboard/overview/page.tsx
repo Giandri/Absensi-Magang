@@ -132,7 +132,7 @@ export default function OverviewPage() {
               <h1 className="text-3xl font-bold text-gray-900">Ringkasan Kehadiran</h1>
               <p className="text-gray-600 mt-1">Pantau cepat kehadiran peserta magang</p>
             </div>
-            <div className="text-sm text-gray-500">{loading ? <Skeleton className="h-4 w-32" /> : `Terakhir diperbarui: ${new Date().toLocaleString("id-ID")}`}</div>
+            <div className="text-sm text-gray-500">{loading ? <Skeleton className="h-4 w-32" /> : `Terakhir diperbarui: ${new Date().toLocaleDateString("id-ID")}`}</div>
           </div>
 
           {/* Error State */}

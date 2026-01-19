@@ -2,7 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, BarChart3, Activity, LogOut, Users, FileSpreadsheet } from "lucide-react";
 import Image from "next/image";
@@ -14,7 +15,6 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
 
   const menuItems = [
     {
@@ -50,11 +50,14 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   ];
 
   const handleLogout = () => {
+    // Cleanup localStorage first
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth-token");
       localStorage.removeItem("user-data");
     }
-    router.push("/login");
+
+    // Let NextAuth handle the redirect automatically
+    signOut({ callbackUrl: "/login" });
   };
 
   return (

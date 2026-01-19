@@ -10,6 +10,12 @@ import Sidebar from "@/components/Sidebar";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+interface JSDocWithAutoTable extends jsPDF {
+  lastAutoTable: {
+    finalY: number;
+  };
+}
+
 interface UserSummary {
   userId: string;
   name: string;
@@ -175,28 +181,28 @@ export default function RekapAbsenPage() {
     doc.setFont("helvetica", "bold");
     doc.text("Ringkasan Per Karyawan", 14, 40);
 
-    const summaryData = data.summary.map((user) => [user.name, user.present.toString(), user.late.toString(), user.permission.toString(), user.absent.toString(), user.holiday.toString(), user.weekend.toString(), user.totalWorkHours]);
+    const summaryData = data.summary.map((user) => [user.name, user.present.toString(), user.late.toString(), user.permission.toString(), user.absent.toString(), user.holiday.toString(), user.weekend.toString()]);
 
     autoTable(doc, {
       startY: 45,
-      head: [["Nama", "Hadir", "Terlambat", "Izin", "Tidak Hadir", "Libur", "Total Jam"]],
+      head: [["Nama", "Hadir", "Terlambat", "Izin", "Tidak Hadir", "Libur"]],
       body: summaryData,
       theme: "grid",
       headStyles: { fillColor: [250, 204, 21], textColor: [0, 0, 0], fontStyle: "bold" },
-      styles: { fontSize: 9, cellPadding: 3 },
+      styles: { fontSize: 9, cellPadding: 3, halign: "center" },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 18, halign: "center" },
-        2: { cellWidth: 22, halign: "center" },
-        3: { cellWidth: 18, halign: "center" },
-        4: { cellWidth: 18, halign: "center" },
-        5: { cellWidth: 18, halign: "center" },
-        6: { cellWidth: 22, halign: "center" },
+        0: { cellWidth: 55, halign: "left" },
+        1: { cellWidth: 25, halign: "center" },
+        2: { cellWidth: 25, halign: "center" },
+        3: { cellWidth: 25, halign: "center" },
+        4: { cellWidth: 25, halign: "center" },
+        5: { cellWidth: 25, halign: "center" },
       },
+      margin: { left: 14, right: 14 }, // Full width with standard margins
     });
 
     // Detail per user
-    let currentY = (doc as any).lastAutoTable.finalY + 15;
+    let currentY = (doc as JSDocWithAutoTable).lastAutoTable.finalY + 15;
 
     data.summary.forEach((user) => {
       const userDetails = data.detail.filter((d) => d.userId === user.userId);
@@ -225,37 +231,33 @@ export default function RekapAbsenPage() {
         else if (detail.permissionStatus === "pending") permStatusText = "Menunggu";
         else if (detail.permissionStatus === "rejected") permStatusText = "Ditolak";
 
-        const notesText = detail.status === "holiday" && detail.holidayName ? detail.holidayName : detail.notes || "-";
-
         return [
           new Date(detail.date).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" }),
           statusText,
           permStatusText,
           detail.checkIn || "-",
           detail.checkOut || "-",
-          detail.status === "holiday" || detail.status === "weekend" ? "-" : detail.workHours,
-          notesText,
         ];
       });
 
       autoTable(doc, {
         startY: currentY + 5,
-        head: [["Tanggal", "Status", "Masuk", "Pulang", "Jam Kerja", "Catatan"]],
+        head: [["Tanggal", "Status", "Status Izin", "Masuk", "Pulang"]],
         body: detailData,
         theme: "striped",
         headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: "bold" },
         styles: { fontSize: 8, cellPadding: 2 },
-        columnStyles: {
-          0: { cellWidth: 28 },
-          1: { cellWidth: 22 },
-          2: { cellWidth: 22 },
-          3: { cellWidth: 18, halign: "center" },
-          4: { cellWidth: 18, halign: "center" },
-          5: { cellWidth: 47 },
-        },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 35, halign: "center" },
+        4: { cellWidth: 35, halign: "center" },
+      },
+        margin: { left: 14, right: 14 }, // Full width with standard margins
       });
 
-      currentY = (doc as any).lastAutoTable.finalY + 10;
+      currentY = (doc as JSDocWithAutoTable).lastAutoTable.finalY + 10;
     });
 
     // Footer

@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Header from "@/components/Header";
-import { LogOut, User, Phone, Mail, MapPin, Save, X } from "lucide-react";
+import { LogOut, User, Phone, Mail, MapPin, Save, X, LayoutDashboard } from "lucide-react";
 
 const useUserProfile = (userId?: string) => {
   const [data, setData] = useState<UserData | null>(null);
@@ -94,6 +94,8 @@ export default function ProfilePage() {
 
   // Check auth mirip sebelumnya
   useEffect(() => {
+    console.log("Profile page - Session:", session);
+    console.log("Profile page - User role:", session?.user?.role);
     const checkAuth = () => {
       if (session) {
         setIsAuthenticated(true);
@@ -152,13 +154,15 @@ export default function ProfilePage() {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    // Cleanup localStorage first
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth-token");
       localStorage.removeItem("user-data");
     }
-    await signOut({ redirect: false });
-    router.push("/login");
+
+    // Let NextAuth handle the redirect automatically
+    signOut({ callbackUrl: "/login" });
   };
 
   // Loading skeleton mirip riwayat
@@ -255,6 +259,43 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Dashboard Button - Only for Admin */}
+        {(() => {
+          // Check role from session or localStorage
+          const userRole = session?.user?.role;
+          const localUserData = typeof window !== "undefined" ? localStorage.getItem("user-data") : null;
+          let localRole = null;
+          if (localUserData) {
+            try {
+              const user = JSON.parse(localUserData);
+              localRole = user.role;
+            } catch (error) {
+              console.error("Error parsing user data from localStorage:", error);
+            }
+          }
+          const isAdmin = userRole === "admin" || localRole === "admin";
+
+          console.log("Dashboard button check - Session role:", userRole, "Local role:", localRole, "Is admin:", isAdmin);
+
+          return isAdmin ? (
+            <div className="mx-4 mt-4">
+              <Button onClick={() => {
+                console.log("Navigating to dashboard");
+                // Try multiple navigation methods
+                try {
+                  router.push("/dashboard");
+                } catch (error) {
+                  console.error("Router navigation failed, using window.location");
+                  window.location.href = "/dashboard";
+                }
+              }} className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base gap-3">
+                <LayoutDashboard className="w-5 h-5" />
+                <span>Dashboard Admin</span>
+              </Button>
+            </div>
+          ) : null;
+        })()}
 
         {/* Logout Button */}
         <div className="mx-4 mt-6">
