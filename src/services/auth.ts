@@ -10,7 +10,9 @@ export interface AttendanceRequest {
   longitude: number;
   timestamp: string;
   userId?: string;
+  notes?: string;
 }
+
 
 export interface AttendanceResponse {
   success: boolean;

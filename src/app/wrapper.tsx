@@ -8,6 +8,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 
+
 export default function Wrapper({ children }: ChildrenProps) {
   const [queryClient] = useState(() => new QueryClient());
 
@@ -21,6 +22,7 @@ export default function Wrapper({ children }: ChildrenProps) {
               <div className="w-full min-h-svh">{children}</div>
             </AnimatePresence>
           </LazyMotion>
+
         </QueryClientProvider>
       </JotaiProvider>
     </SessionProvider>

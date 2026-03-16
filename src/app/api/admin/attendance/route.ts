@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth.config";
-import { getLocationName } from "@/lib/geocoding";
+import { getLocationName, OFFICE_CONFIG } from "@/lib/geocoding";
 
 export async function GET(request: NextRequest) {
     try {
@@ -182,3 +182,105 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ message: "Terjadi kesalahan server" }, { status: 500 });
     }
 }
+
+export async function POST(request: NextRequest) {
+
+    try {
+        console.log("📝 [ADMIN ATTENDANCE] Creating manual entry...");
+        
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const body = await request.json();
+        let { userId, date, checkInTime, checkOutTime, notes } = body;
+
+        // If not admin, force userId to be current user
+        if (session.user.role !== "admin") {
+            userId = session.user.id;
+        }
+
+        if (!userId || !date || (!checkInTime && !checkOutTime)) {
+            return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+        }
+
+
+        const targetDate = new Date(date);
+        targetDate.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (targetDate > today) {
+            return NextResponse.json({ message: "Tidak bisa membuat absensi untuk tanggal mendatang" }, { status: 400 });
+        }
+
+
+        const checkInDate = checkInTime ? new Date(checkInTime) : null;
+        const checkOutDate = checkOutTime ? new Date(checkOutTime) : null;
+
+        // Cek jika sudah ada absen di hari tersebut
+        const existingAttendance = await prisma.attendance.findFirst({
+            where: {
+                userId,
+                date: {
+                    gte: targetDate,
+                    lt: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000),
+                },
+            },
+        });
+
+        if (existingAttendance) {
+            // Jika sudah ada absen, dan user memberikan checkOutTime tapi record lama null, UPDATE saja
+            if (checkOutDate && !existingAttendance.checkOutTime) {
+                console.log("🔄 [ADMIN ATTENDANCE] Updating missing check-out for existing record...");
+                const updated = await prisma.attendance.update({
+                    where: { id: existingAttendance.id },
+                    data: {
+                        checkOutTime: checkOutDate,
+                        notes: notes || existingAttendance.notes || "Manual check-out update",
+                    },
+                });
+                return NextResponse.json({
+                    status_code: 200,
+                    message: "Attendance updated with check-out time",
+                    data: updated,
+                });
+            }
+            return NextResponse.json({ message: "Absen sudah ada untuk tanggal ini" }, { status: 400 });
+        }
+
+        if (!checkInDate) {
+            return NextResponse.json({ message: "Check-in time is required for new entries" }, { status: 400 });
+        }
+
+        // Tentukan status (default: jika lewat jam 8:00 dianggap terlambat)
+        const eightAm = new Date(checkInDate);
+        eightAm.setHours(8, 0, 0, 0);
+        const status = checkInDate > eightAm ? "late" : "present";
+
+        const attendance = await prisma.attendance.create({
+            data: {
+                userId,
+                date: targetDate,
+                checkInTime: checkInDate,
+                checkOutTime: checkOutDate,
+                status,
+                notes: notes || "Manual entry",
+                checkInLatitude: OFFICE_CONFIG.latitude,
+                checkInLongitude: OFFICE_CONFIG.longitude,
+            },
+        });
+
+        return NextResponse.json({
+            status_code: 201,
+            message: "Attendance created successfully",
+            data: attendance,
+        });
+    } catch (error) {
+        console.error("💥 [ADMIN ATTENDANCE] POST Error:", error);
+        return NextResponse.json({ message: "Terjadi kesalahan server" }, { status: 500 });
+    }
+}
+

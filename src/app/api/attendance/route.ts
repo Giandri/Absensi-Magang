@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized - Please login first" }, { status: 401 });
     }
 
-    const { type, latitude, longitude, timestamp } = body;
+    const { type, latitude, longitude, timestamp, notes } = body;
+
 
     if (!type || !latitude || !longitude || !timestamp) {
       return NextResponse.json({ message: "Type, latitude, longitude, and timestamp are required" }, { status: 400 });
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
           checkOutTime: checkOutTime,
           checkOutLatitude: latitude,
           checkOutLongitude: longitude,
-
+          notes: notes || existingAttendance.notes,
         },
       });
     }

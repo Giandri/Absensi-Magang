@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth.config";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,8 +38,33 @@ export async function POST(req: NextRequest) {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    // Quota check for 'izin' and 'sakit'
+    if (["izin", "sakit"].includes(type)) {
+      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      const usageCount = await prisma.permission.count({
+        where: {
+          userId,
+          type: { in: ["izin", "sakit"] },
+          date: {
+            gte: firstDayOfMonth,
+            lte: lastDayOfMonth,
+          },
+        },
+      });
+
+      if (usageCount >= 3) {
+        return NextResponse.json({ 
+          error: "Batas maksimal izin/sakit bulan ini (3x) telah tercapai." 
+        }, { status: 400 });
+      }
+    }
+
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+
 
     const existing = await prisma.permission.findFirst({
       where: { userId, date: { gte: today, lt: tomorrow } },

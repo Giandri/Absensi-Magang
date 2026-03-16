@@ -4,8 +4,14 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertTriangle, Users, Filter, FileText } from "lucide-react";
+import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertTriangle, Users, Filter, FileText, PlusCircle, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner"; // Assuming sonner is used for toasts, or I'll use simple feedback
 
 interface AttendanceRecord {
   id: string;
@@ -101,30 +107,87 @@ export default function AttendanceMonitoringPage() {
   const [data, setData] = useState<AdminAttendanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // State untuk Manual Attendance Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    userId: "",
+    date: new Date().toISOString().split("T")[0],
+    checkInTime: "08:00",
+    checkOutTime: "16:00",
+    notes: ""
+  });
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`/api/admin/attendance?date=${selectedDate}`);
-        const result = await response.json();
-
-        if (response.ok) {
-          setData(result.data);
-        } else {
-          setError(result.message || "Gagal mengambil data");
-        }
-      } catch (err) {
-        setError("Terjadi kesalahan saat mengambil data");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [selectedDate]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/attendance?date=${selectedDate}`);
+      const result = await response.json();
+
+      if (response.ok) {
+        setData(result.data);
+      } else {
+        setError(result.message || "Gagal mengambil data");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan saat mengambil data");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      // Create full ISO strings for times
+      const checkInISO = new Date(`${formData.date}T${formData.checkInTime}:00`).toISOString();
+      const checkOutISO = formData.checkOutTime 
+        ? new Date(`${formData.date}T${formData.checkOutTime}:00`).toISOString()
+        : null;
+
+      const response = await fetch("/api/admin/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          checkInTime: checkInISO,
+          checkOutTime: checkOutISO
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // use toast if available, or just alert/feedback
+        alert("Absen manual berhasil ditambahkan");
+        setIsModalOpen(false);
+        fetchData(); // Refresh data
+        // Reset form
+        setFormData({
+            userId: "",
+            date: new Date().toISOString().split("T")[0],
+            checkInTime: "08:00",
+            checkOutTime: "16:00",
+            notes: ""
+        });
+      } else {
+        alert(result.message || "Gagal menambahkan absen");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan sistem");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const getStatusBadge = (status: string, permissionType?: string | null) => {
     switch (status) {
@@ -172,6 +235,99 @@ export default function AttendanceMonitoringPage() {
               <h1 className="text-3xl font-bold text-gray-900">Monitoring Kehadiran</h1>
               <p className="text-gray-600 mt-1">Pelacakan dan monitoring kehadiran peserta magang</p>
             </div>
+            
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold flex items-center gap-2">
+                  <PlusCircle className="h-5 w-5" />
+                  Tambah Absen Manual
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] bg-white">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">Tambah Absen Manual</DialogTitle>
+                  <DialogDescription>
+                    Isi form di bawah untuk menambahkan data kehadiran yang terlewat.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleManualSubmit} className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="userId">Pilih Pemagang</Label>
+                    <Select 
+                      value={formData.userId} 
+                      onValueChange={(val) => setFormData({...formData, userId: val})}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Pilih pemagang..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-md">
+                        {allEmployees.map((emp) => (
+                          <SelectItem key={emp.id} value={emp.userId || emp.id}>
+                            {emp.employee}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="manual-date">Tanggal</Label>
+                    <Input 
+                      id="manual-date" 
+                      type="date" 
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="checkIn">Jam Masuk</Label>
+                      <Input 
+                        id="checkIn" 
+                        type="time" 
+                        value={formData.checkInTime}
+                        onChange={(e) => setFormData({...formData, checkInTime: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="checkOut">Jam Pulang</Label>
+                      <Input 
+                        id="checkOut" 
+                        type="time" 
+                        value={formData.checkOutTime}
+                        onChange={(e) => setFormData({...formData, checkOutTime: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="manual-notes">Catatan (Optional)</Label>
+                    <Input 
+                      id="manual-notes" 
+                      placeholder="Contoh: Lupa scan, kendala teknis" 
+                      value={formData.notes}
+                      onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    />
+                  </div>
+                  
+                  <DialogFooter className="pt-4">
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting || !formData.userId}
+                      className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-11"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Menyimpan...
+                        </>
+                      ) : "Simpan Kehadiran"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Filters */}
@@ -186,8 +342,19 @@ export default function AttendanceMonitoringPage() {
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
-                  <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+                  <label htmlFor="date-filter" className="sr-only">Pilih Tanggal</label>
+                  <input 
+                    id="date-filter"
+                    type="date" 
+                    value={selectedDate} 
+                    title="Pilih Tanggal"
+                    placeholder="Pilih Tanggal"
+                    aria-label="Pilih Tanggal"
+                    onChange={(e) => setSelectedDate(e.target.value)} 
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400" 
+                  />
                 </div>
+
               </div>
             </CardContent>
           </Card>

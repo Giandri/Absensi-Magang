@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/auth.config";
+import { authOptions } from "@/lib/auth";
 
 // GET - Cek apakah user sudah mengajukan izin/sakit/libur hari ini
 export async function GET(req: NextRequest) {

@@ -169,8 +169,8 @@ export default function ProfilePage() {
   if (status === "loading" || profileLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100">
-        <div className="pb-24">
-          <Header />
+      <div className="pb-24 pt-10">
+
           <div className="flex justify-center pt-8 pb-4">
             <Skeleton className="w-28 h-28 rounded-full" />
           </div>
@@ -197,9 +197,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 pt-10">
       <div className="pb-24">
-        <Header />
+
 
         {/* Avatar */}
         <div className="flex justify-center pt-8 pb-4">
