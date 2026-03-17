@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
     const userId = searchParams.get("userId") || undefined;
+    const userIds = userId ? userId.split(",") : [];
     const format = searchParams.get("format") || "json";
 
     if (!start || !end) {
@@ -22,17 +23,17 @@ export async function GET(req: NextRequest) {
     const holidays = await fetchHolidaysForRange(startDate, endDate);
 
     const users = await prisma.user.findMany({
-      where: { role: "user", ...(userId ? { id: userId } : {}) },
+      where: { role: "user", ...(userIds.length > 0 ? { id: { in: userIds } } : {}) },
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },
     });
 
     const [attendances, permissions] = await Promise.all([
       prisma.attendance.findMany({
-        where: { date: { gte: startDate, lte: endDate }, ...(userId ? { userId } : {}) },
+        where: { date: { gte: startDate, lte: endDate }, ...(userIds.length > 0 ? { userId: { in: userIds } } : {}) },
       }),
       prisma.permission.findMany({
-        where: { date: { gte: startDate, lte: endDate }, ...(userId ? { userId } : {}) },
+        where: { date: { gte: startDate, lte: endDate }, ...(userIds.length > 0 ? { userId: { in: userIds } } : {}) },
       }),
     ]);
 

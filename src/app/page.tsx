@@ -57,7 +57,8 @@ export default function AbsenApp() {
             <Clock />
           </section>
 
-          {/* Section: QUICK ACTIONS */}
+{/* Section: QUICK ACTIONS - DISABLED TEMPORARILY */}
+{/* 
           <section className="space-y-3">
              <div className="flex items-center justify-between px-1">
                 <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Opsi Lainnya</h3>
@@ -79,7 +80,8 @@ export default function AbsenApp() {
                   </Button>
                 }
               />
-          </section>
+          </section> 
+*/}
 
           {/* Section: PERMISSION */}
           <section>

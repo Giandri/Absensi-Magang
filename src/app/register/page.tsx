@@ -48,8 +48,8 @@ export default function Registrasi() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <Header />
+      {/* Header - Hidden as requested for login page consistency */}
+      {/* <Header /> */}
 
       {/* Main Content */}
       <div className="flex-1 px-6 py-10">

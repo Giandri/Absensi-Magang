@@ -81,8 +81,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <Header />
+      {/* Header - Hidden as requested */}
+      {/* <Header /> */}
 
       {/* Main Content */}
       <div className="flex-1 px-6 py-8 mb-20">

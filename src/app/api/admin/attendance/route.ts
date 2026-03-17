@@ -196,7 +196,15 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         let { userId, date, checkInTime, checkOutTime, notes } = body;
 
-        // If not admin, force userId to be current user
+        // If not admin, prevent manual attendance
+        if (session.user.role !== "admin") {
+            return NextResponse.json(
+                { message: "Absen manual dinonaktifkan sementara. Silakan hubungi admin jika ada kendala." }, 
+                { status: 403 }
+            );
+        }
+
+        // Admin can still perform manual actions
         if (session.user.role !== "admin") {
             userId = session.user.id;
         }

@@ -343,10 +343,10 @@ export default function Clock() {
             onClick={() => setOpenClockIn(true)}
             disabled={isOffDay || hasPermissionToday}
             className={`group relative h-32 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${todayAttendance?.attendance?.checkInTime
-                ? "bg-emerald-50 border-2 border-emerald-100"
-                : isOffDay || hasPermissionToday
-                  ? "bg-slate-50 border border-slate-100 opacity-50 grayscale"
-                  : "bg-white border border-slate-100 shadow-sm hover:shadow-md"
+              ? "bg-emerald-50 border-2 border-emerald-100"
+              : isOffDay || hasPermissionToday
+                ? "bg-slate-50 border border-slate-100 opacity-50 grayscale"
+                : "bg-white border border-slate-100 shadow-sm hover:shadow-md"
               }`}
           >
             {todayAttendance?.attendance?.checkInTime && <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-emerald-500" />}
@@ -369,10 +369,10 @@ export default function Clock() {
             onClick={() => setOpenClockOut(true)}
             disabled={isOffDay || hasPermissionToday}
             className={`group relative h-32 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${todayAttendance?.attendance?.checkOutTime
-                ? "bg-rose-50 border-2 border-rose-100"
-                : isOffDay || hasPermissionToday
-                  ? "bg-slate-50 border border-slate-100 opacity-50 grayscale"
-                  : "bg-white border border-slate-100 shadow-sm hover:shadow-md"
+              ? "bg-rose-50 border-2 border-rose-100"
+              : isOffDay || hasPermissionToday
+                ? "bg-slate-50 border border-slate-100 opacity-50 grayscale"
+                : "bg-white border border-slate-100 shadow-sm hover:shadow-md"
               }`}
           >
             {todayAttendance?.attendance?.checkOutTime && <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-rose-500" />}
