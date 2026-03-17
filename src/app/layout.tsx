@@ -23,9 +23,9 @@ export const metadata: Metadata = {
   title: "Absensi Magang | BWS Babel",
   description: "Copyright by Giandri Aditio",
   icons: {
-    icon: "/images/bws.jpg",
-    shortcut: "/images/bws.jpg",
-    apple: "/images/bws.jpg",
+    icon: "/images/logo PU.png",
+    shortcut: "/images/logo PU.png",
+    apple: "/images/logo PU.png",
   },
 };
 

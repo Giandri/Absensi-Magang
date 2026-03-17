@@ -6,8 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Phone, Mail, MapPin, User, MessageCircle, ChevronDown } from "lucide-react";
+import { Search, Phone, Mail, MapPin, User, MessageCircle, ChevronDown, BellRing } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface Employee {
   id: string;
@@ -24,6 +34,14 @@ export default function EmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Messaging State
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<Employee | null>(null);
+  const [messageTitle, setMessageTitle] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -84,6 +102,46 @@ export default function EmployeesPage() {
     const url = getWhatsAppUrl(phone, message);
     if (url) {
       window.open(url, "_blank");
+    }
+  };
+
+  const openMessageModal = (employee: Employee) => {
+    setSelectedUser(employee);
+    setMessageTitle("");
+    setMessageBody("");
+    setMessageModalOpen(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!selectedUser || !messageTitle.trim() || !messageBody.trim()) {
+      toast.error("Semua kolom harus diisi!");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const res = await fetch("/api/admin/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          title: messageTitle,
+          message: messageBody,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Notifikasi berhasil terkirim!");
+        setMessageModalOpen(false);
+      } else {
+        toast.error(data.error || "Gagal mengirim notifikasi");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Terjadi kesalahan sistem saat mengirim notifikasi");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -160,29 +218,39 @@ export default function EmployeesPage() {
                       </div>
                     </div>
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2" disabled={!employee.phone}>
-                          <MessageCircle className="w-4 h-4" />
-                          Hubungi via WhatsApp
-                          <ChevronDown className="w-4 h-4 ml-auto" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-56">
-                        <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "default")} className="cursor-pointer text-gray-600">
-                          Pesan Umum
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "reminder")} className="cursor-pointer text-orange-400">
-                          Pengingat Absensi
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "permission")} className="cursor-pointer text-blue-600">
-                          Info Izin
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "warning")} className="cursor-pointer text-red-600">
-                          Peringatan
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white gap-2" disabled={!employee.phone}>
+                            <MessageCircle className="w-4 h-4" />
+                            WhatsApp
+                            <ChevronDown className="w-4 h-4 ml-auto" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56">
+                          <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "default")} className="cursor-pointer text-gray-600">
+                            Pesan Umum
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "reminder")} className="cursor-pointer text-orange-400">
+                            Pengingat Absensi
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "permission")} className="cursor-pointer text-blue-600">
+                            Info Izin
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleWhatsApp(employee.phone, employee.name, "warning")} className="cursor-pointer text-red-600">
+                            Peringatan
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <Button 
+                        onClick={() => openMessageModal(employee)}
+                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white gap-2"
+                      >
+                        <BellRing className="w-4 h-4" />
+                        Notifikasi
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -190,6 +258,51 @@ export default function EmployeesPage() {
           </div>
         </div>
       </div>
+
+      {/* Message User Modal */}
+      <Dialog open={messageModalOpen} onOpenChange={setMessageModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Kirim Notifikasi Aplikasi</DialogTitle>
+            <DialogDescription>
+              Kirim push notification langsung ke perangkat milik <strong>{selectedUser?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="title" className="text-sm font-semibold text-gray-700">
+                Judul Pesan
+              </label>
+              <Input
+                id="title"
+                placeholder="Contoh: Panggilan Tugas"
+                value={messageTitle}
+                onChange={(e) => setMessageTitle(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="message" className="text-sm font-semibold text-gray-700">
+                Isi Pesan
+              </label>
+              <Textarea
+                id="message"
+                placeholder="Ketikan pesan yang ingin dikirim..."
+                value={messageBody}
+                onChange={(e) => setMessageBody(e.target.value)}
+                className="min-h-[100px] resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMessageModalOpen(false)}>
+              Batal
+            </Button>
+            <Button onClick={handleSendMessage} disabled={isSending} className="bg-yellow-500 hover:bg-yellow-600 text-white">
+              {isSending ? "Mengirim..." : "Kirim Sekarang"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

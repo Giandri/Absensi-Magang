@@ -340,7 +340,7 @@ export default function RekapAbsenPage() {
 
       // Force page break for each participant
       doc.addPage();
-      currentY = 20; 
+      currentY = 20;
 
       // User detail header bar
       doc.setFillColor(SECONDARY_COLOR[0], SECONDARY_COLOR[1], SECONDARY_COLOR[2]);
@@ -428,7 +428,7 @@ export default function RekapAbsenPage() {
       doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - 14, pageHeight - 10, { align: "right" });
     }
 
-    doc.save(`rekap-absen-premium-${startDate}-${endDate}.pdf`);
+    doc.save(`rekap-absensi-magang-${startDate}-${endDate}.pdf`);
   };
 
   const toggleUserExpand = (userId: string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,9 +23,11 @@ interface PermissionProps {
 }
 
 export default function Permission({ hasCheckedIn = false }: PermissionProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [openType, setOpenType] = useState<"izin" | "sakit" | "libur" | null>(null);
   const [note, setNote] = useState("");
   const { data: session } = useSession();
+
   const mutation = useSubmitPermission();
 
   const handleOpen = (type: "izin" | "sakit" | "libur") => {
@@ -68,6 +70,28 @@ export default function Permission({ hasCheckedIn = false }: PermissionProps) {
       }
     );
   };
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 min-h-[160px] animate-pulse">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="h-3 w-20 bg-slate-200 rounded mb-2"></div>
+            <div className="h-6 w-32 bg-slate-200 rounded"></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+           <div className="h-24 bg-slate-100 rounded-2xl"></div>
+           <div className="h-24 bg-slate-100 rounded-2xl"></div>
+           <div className="h-24 bg-slate-100 rounded-2xl"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">

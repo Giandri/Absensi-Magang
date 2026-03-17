@@ -8,8 +8,11 @@ import { useSession } from "next-auth/react";
 import { Bell, HelpCircle, ChevronRight, User, CheckCircle, FileText } from "lucide-react";
 
 
+import NotificationBell from "./NotificationBell";
+
 export default function Header() {
   const { data: session } = useSession();
+
   const [stats, setStats] = React.useState({
     presentCount: 0,
     permissionCount: 0,
@@ -76,10 +79,7 @@ export default function Header() {
           <button className="w-9 h-9 rounded-full hover:bg-gray-50 flex items-center justify-center text-gray-400 transition-all active:scale-90" title="Bantuan">
             <HelpCircle className="w-5 h-5" />
           </button>
-          <button className="w-9 h-9 rounded-full hover:bg-gray-50 flex items-center justify-center text-gray-400 transition-all active:scale-90 relative" title="Notifikasi">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-          </button>
+          <NotificationBell />
         </div>
       </div>
 

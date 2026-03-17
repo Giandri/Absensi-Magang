@@ -194,36 +194,63 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        let { userId, date, checkInTime, checkOutTime, notes } = body;
+        let { userId, date, checkInTime, checkOutTime, notes, actionType, permissionType } = body;
 
-        // If not admin, prevent manual attendance
+        // Ensure user is admin
         if (session.user.role !== "admin") {
-            return NextResponse.json(
-                { message: "Absen manual dinonaktifkan sementara. Silakan hubungi admin jika ada kendala." }, 
-                { status: 403 }
-            );
+            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
         }
 
-        // Admin can still perform manual actions
-        if (session.user.role !== "admin") {
-            userId = session.user.id;
-        }
-
-        if (!userId || !date || (!checkInTime && !checkOutTime)) {
+        if (!userId || !date) {
             return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
         }
-
 
         const targetDate = new Date(date);
         targetDate.setHours(0, 0, 0, 0);
 
+        // --- Handle Permission (Izin/Sakit/Libur) ---
+        if (actionType === "permission") {
+            if (!permissionType) {
+                return NextResponse.json({ message: "Permission type is required" }, { status: 400 });
+            }
+
+            // Check if already has something for today
+            const existingAttendance = await prisma.attendance.findFirst({
+                where: { userId, date: { gte: targetDate, lt: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000) } }
+            });
+
+            const existingPermission = await prisma.permission.findFirst({
+                where: { userId, date: targetDate }
+            });
+
+            if (existingAttendance || existingPermission) {
+                return NextResponse.json({ message: "User sudah memiliki data (absen/izin) untuk tanggal ini" }, { status: 400 });
+            }
+
+            const permission = await prisma.permission.create({
+                data: {
+                    userId,
+                    type: permissionType,
+                    note: notes || `Admin manual entry: ${permissionType}`,
+                    date: targetDate,
+                    status: "Approved",
+                }
+            });
+
+            return NextResponse.json({
+                status_code: 201,
+                message: "Izin berhasil dicatat oleh Admin",
+                data: permission,
+            });
+        }
+
+        // --- Handle Manual Attendance (Existing Logic) ---
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         if (targetDate > today) {
             return NextResponse.json({ message: "Tidak bisa membuat absensi untuk tanggal mendatang" }, { status: 400 });
         }
-
 
         const checkInDate = checkInTime ? new Date(checkInTime) : null;
         const checkOutDate = checkOutTime ? new Date(checkOutTime) : null;
@@ -242,7 +269,6 @@ export async function POST(request: NextRequest) {
         if (existingAttendance) {
             // Jika sudah ada absen, dan user memberikan checkOutTime tapi record lama null, UPDATE saja
             if (checkOutDate && !existingAttendance.checkOutTime) {
-                console.log("🔄 [ADMIN ATTENDANCE] Updating missing check-out for existing record...");
                 const updated = await prisma.attendance.update({
                     where: { id: existingAttendance.id },
                     data: {

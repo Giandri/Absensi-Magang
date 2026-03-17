@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner"; // Assuming sonner is used for toasts, or I'll use simple feedback
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast as sonnerToast } from "sonner";
 
 interface AttendanceRecord {
   id: string;
@@ -97,6 +98,9 @@ function TableRowSkeleton() {
       <td className="py-3 px-4">
         <Skeleton className="h-4 w-32" />
       </td>
+      <td className="py-3 px-4 text-right">
+        <Skeleton className="h-8 w-16 ml-auto rounded" />
+      </td>
     </tr>
   );
 }
@@ -111,12 +115,14 @@ export default function AttendanceMonitoringPage() {
   // State untuk Manual Attendance Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("attendance");
   const [formData, setFormData] = useState({
     userId: "",
     date: new Date().toISOString().split("T")[0],
     checkInTime: "08:00",
     checkOutTime: "16:00",
-    notes: ""
+    notes: "",
+    permissionType: "izin"
   });
 
   useEffect(() => {
@@ -143,13 +149,15 @@ export default function AttendanceMonitoringPage() {
     }
   };
 
-  const handleManualSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleManualSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSubmitting(true);
     try {
       // Create full ISO strings for times
-      const checkInISO = new Date(`${formData.date}T${formData.checkInTime}:00`).toISOString();
-      const checkOutISO = formData.checkOutTime 
+      const checkInISO = activeTab === "attendance" 
+        ? new Date(`${formData.date}T${formData.checkInTime}:00`).toISOString()
+        : null;
+      const checkOutISO = activeTab === "attendance" && formData.checkOutTime 
         ? new Date(`${formData.date}T${formData.checkOutTime}:00`).toISOString()
         : null;
 
@@ -158,16 +166,17 @@ export default function AttendanceMonitoringPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          actionType: activeTab,
           checkInTime: checkInISO,
-          checkOutTime: checkOutISO
+          checkOutTime: checkOutISO,
+          permissionType: activeTab === "permission" ? formData.permissionType : null
         }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        // use toast if available, or just alert/feedback
-        alert("Absen manual berhasil ditambahkan");
+        sonnerToast.success(result.message || "Berhasil menyimpan data");
         setIsModalOpen(false);
         fetchData(); // Refresh data
         // Reset form
@@ -176,17 +185,32 @@ export default function AttendanceMonitoringPage() {
             date: new Date().toISOString().split("T")[0],
             checkInTime: "08:00",
             checkOutTime: "16:00",
-            notes: ""
+            notes: "",
+            permissionType: "izin"
         });
       } else {
-        alert(result.message || "Gagal menambahkan absen");
+        sonnerToast.error(result.message || "Gagal menyimpan data");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan sistem");
+      sonnerToast.error("Terjadi kesalahan sistem");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleQuickAction = (userId: string, action: "attendance" | "permission") => {
+    setFormData(prev => ({
+        ...prev,
+        userId: userId,
+        date: selectedDate, // Use currently viewed date
+        checkInTime: "08:00",
+        checkOutTime: "16:00",
+        notes: ""
+    }));
+    
+    setActiveTab(action);
+    setIsModalOpen(true);
   };
 
   const getStatusBadge = (status: string, permissionType?: string | null) => {
@@ -240,92 +264,129 @@ export default function AttendanceMonitoringPage() {
               <DialogTrigger asChild>
                 <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold flex items-center gap-2">
                   <PlusCircle className="h-5 w-5" />
-                  Tambah Absen Manual
+                  Input Data Manual
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] bg-white">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">Tambah Absen Manual</DialogTitle>
-                  <DialogDescription>
-                    Isi form di bawah untuk menambahkan data kehadiran yang terlewat.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleManualSubmit} className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="userId">Pilih Pemagang</Label>
-                    <Select 
-                      value={formData.userId} 
-                      onValueChange={(val) => setFormData({...formData, userId: val})}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih pemagang..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border shadow-md">
-                        {allEmployees.map((emp) => (
-                          <SelectItem key={emp.id} value={emp.userId || emp.id}>
-                            {emp.employee}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="manual-date">Tanggal</Label>
-                    <Input 
-                      id="manual-date" 
-                      type="date" 
-                      value={formData.date}
-                      onChange={(e) => setFormData({...formData, date: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="checkIn">Jam Masuk</Label>
-                      <Input 
-                        id="checkIn" 
-                        type="time" 
-                        value={formData.checkInTime}
-                        onChange={(e) => setFormData({...formData, checkInTime: e.target.value})}
-                      />
+              <DialogContent className="sm:max-w-[425px] bg-white p-0 overflow-hidden border-none shadow-2xl">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid grid-cols-2 w-full h-14 rounded-none bg-gray-100 p-1">
+                        <TabsTrigger value="attendance" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Presensi</TabsTrigger>
+                        <TabsTrigger value="permission" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Izin / Sakit</TabsTrigger>
+                    </TabsList>
+
+                    <div className="p-6">
+                        <DialogHeader className="mb-4">
+                        <DialogTitle className="text-xl">
+                            {activeTab === "attendance" ? "Absensi Manual" : "Input Izin / Permit"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {activeTab === "attendance" 
+                                ? "Isi jam masuk/pulang untuk peserta yang lupa melakukan scan."
+                                : "Catat keterangan izin, sakit, atau libur untuk peserta."}
+                        </DialogDescription>
+                        </DialogHeader>
+
+                        <form onSubmit={handleManualSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="userId">Pilih Pemagang</Label>
+                            <Select 
+                            value={formData.userId} 
+                            onValueChange={(val) => setFormData({...formData, userId: val})}
+                            >
+                            <SelectTrigger className="w-full border-gray-200">
+                                <SelectValue placeholder="Pilih pemagang..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border shadow-md">
+                                {allEmployees.map((emp) => (
+                                <SelectItem key={emp.id} value={emp.userId || emp.id}>
+                                    {emp.employee} {emp.status === 'absent' ? '(Belum Ada Data)' : ''}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="manual-date">Tanggal</Label>
+                            <Input 
+                            id="manual-date" 
+                            type="date" 
+                            className="border-gray-200"
+                            value={formData.date}
+                            onChange={(e) => setFormData({...formData, date: e.target.value})}
+                            />
+                        </div>
+
+                        {activeTab === "attendance" ? (
+                            <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1">
+                                <div className="space-y-2">
+                                <Label htmlFor="checkIn">Jam Masuk</Label>
+                                <Input 
+                                    id="checkIn" 
+                                    type="time" 
+                                    className="border-gray-200"
+                                    value={formData.checkInTime}
+                                    onChange={(e) => setFormData({...formData, checkInTime: e.target.value})}
+                                />
+                                </div>
+                                <div className="space-y-2">
+                                <Label htmlFor="checkOut">Jam Pulang</Label>
+                                <Input 
+                                    id="checkOut" 
+                                    type="time" 
+                                    className="border-gray-200"
+                                    value={formData.checkOutTime}
+                                    onChange={(e) => setFormData({...formData, checkOutTime: e.target.value})}
+                                />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                                <Label htmlFor="permissionType">Keterangan</Label>
+                                <Select 
+                                    value={formData.permissionType} 
+                                    onValueChange={(val) => setFormData({...formData, permissionType: val})}
+                                >
+                                    <SelectTrigger className="w-full border-gray-200">
+                                        <SelectValue placeholder="Pilih jenis izin..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border shadow-md">
+                                        <SelectItem value="izin">Izin</SelectItem>
+                                        <SelectItem value="sakit">Sakit</SelectItem>
+                                        <SelectItem value="libur">Libur / Cuti</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="manual-notes">Catatan Tambahan</Label>
+                            <Input 
+                            id="manual-notes" 
+                            className="border-gray-200"
+                            placeholder={activeTab === 'attendance' ? "Contoh: Lupa scan" : "Contoh: Ada urusan keluarga"} 
+                            value={formData.notes}
+                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                            />
+                        </div>
+                        
+                        <DialogFooter className="pt-4">
+                            <Button 
+                            type="submit" 
+                            disabled={isSubmitting || !formData.userId}
+                            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-11"
+                            >
+                            {isSubmitting ? (
+                                <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Memproses...
+                                </>
+                            ) : "Simpan Perubahan"}
+                            </Button>
+                        </DialogFooter>
+                        </form>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="checkOut">Jam Pulang</Label>
-                      <Input 
-                        id="checkOut" 
-                        type="time" 
-                        value={formData.checkOutTime}
-                        onChange={(e) => setFormData({...formData, checkOutTime: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="manual-notes">Catatan (Optional)</Label>
-                    <Input 
-                      id="manual-notes" 
-                      placeholder="Contoh: Lupa scan, kendala teknis" 
-                      value={formData.notes}
-                      onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                    />
-                  </div>
-                  
-                  <DialogFooter className="pt-4">
-                    <Button 
-                      type="submit" 
-                      disabled={isSubmitting || !formData.userId}
-                      className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-11"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Menyimpan...
-                        </>
-                      ) : "Simpan Kehadiran"}
-                    </Button>
-                  </DialogFooter>
-                </form>
+                </Tabs>
               </DialogContent>
             </Dialog>
           </div>
@@ -462,6 +523,7 @@ export default function AttendanceMonitoringPage() {
                       <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-700">Jam Kerja</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-700">Lokasi</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -475,14 +537,14 @@ export default function AttendanceMonitoringPage() {
                       </>
                     ) : allEmployees.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center py-8 text-gray-500">
+                        <td colSpan={7} className="text-center py-8 text-gray-500">
                           <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
                           <p>Belum ada data kehadiran untuk tanggal ini</p>
                         </td>
                       </tr>
                     ) : (
                       allEmployees.map((employee) => (
-                        <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <tr key={employee.id} className="border-b border-gray-100 hover:bg-gray-50 group">
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm font-medium text-black">
@@ -516,8 +578,42 @@ export default function AttendanceMonitoringPage() {
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4 text-gray-400" />
-                              <span className="text-gray-600 text-sm">{employee.location || "N/A"}</span>
+                              <span className="text-gray-600 text-sm whitespace-nowrap">{employee.location || "N/A"}</span>
                             </div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                             {employee.status === 'absent' ? (
+                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-8 text-xs border-green-200 text-green-700 hover:bg-green-50"
+                                        onClick={() => handleQuickAction(employee.userId, 'attendance')}
+                                    >
+                                        Hadir
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-8 text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+                                        onClick={() => handleQuickAction(employee.userId, 'permission')}
+                                    >
+                                        Izin
+                                    </Button>
+                                </div>
+                             ) : (
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-8 text-xs text-gray-400"
+                                    onClick={() => {
+                                        setFormData(prev => ({ ...prev, userId: employee.userId }));
+                                        setIsModalOpen(true);
+                                    }}
+                                >
+                                    Edit
+                                </Button>
+                             )}
                           </td>
                         </tr>
                       ))
