@@ -422,7 +422,7 @@ export default function RekapAbsenPage() {
       doc.setFontSize(8);
       doc.setTextColor(TEXT_SECONDARY[0], TEXT_SECONDARY[1], TEXT_SECONDARY[2]);
       doc.setFont("helvetica", "italic");
-      doc.text("Laporan ini dihasilkan secara otomatis oleh Sistem Absensi Digital.", 14, pageHeight - 10);
+      doc.text("Laporan ini dihasilkan secara otomatis oleh Sistem Absensi Digital dan tidak memerlukan tanda tangan basah.", 14, pageHeight - 10);
 
       doc.setFont("helvetica", "normal");
       doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - 14, pageHeight - 10, { align: "right" });
