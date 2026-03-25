@@ -15,7 +15,7 @@ export async function sendNotification({
   type?: string;
 }) {
   try {
-    // 1. Save to database history
+
     const notification = await prisma.notification.create({
       data: {
         userId,
@@ -26,12 +26,10 @@ export async function sendNotification({
       },
     });
 
-    // 2. Fetch all active push subscriptions for this user
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { userId },
     });
 
-    // 3. Send push messages
     const pushPromises = subscriptions.map(async (sub) => {
       try {
         const pushSubscription = {
@@ -51,7 +49,7 @@ export async function sendNotification({
           })
         );
       } catch (error: any) {
-        // If subscription is expired or invalid, remove it
+
         if (error.statusCode === 404 || error.statusCode === 410) {
           console.log(`Removing expired subscription: ${sub.endpoint}`);
           await prisma.pushSubscription.delete({ where: { id: sub.id } });

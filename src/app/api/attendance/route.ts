@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth.config";
+import { sendNotification } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Invalid attendance type. Must be 'checkin' or 'checkout'" }, { status: 400 });
     }
 
-    const { getTodayWIB, getTomorrowWIB } = await import("@/lib/date");
+    const { getTodayWIB, getTomorrowWIB, formatTimeWIB } = await import("@/lib/date");
 
     const todayWIB = getTodayWIB();
     const tomorrowWIB = getTomorrowWIB();
@@ -92,6 +93,16 @@ export async function POST(request: NextRequest) {
           },
         });
       }
+
+      // Send check-in notification with time
+      const checkInWibTime = formatTimeWIB(timestamp);
+      await sendNotification({
+        userId,
+        title: "Absen Masuk Berhasil ✅",
+        message: `Jam masuk: ${checkInWibTime} WIB. Semangat bekerja hari ini!`,
+        type: "attendance",
+        url: "/dashboard",
+      });
     }
 
     if (type === "checkout") {
@@ -131,6 +142,19 @@ export async function POST(request: NextRequest) {
           checkOutLongitude: longitude,
           notes: notes || existingAttendance.notes,
         },
+      });
+
+      // Send check-out notification with check-in and check-out times
+      const inWib = formatTimeWIB(checkInTime);
+      const outWib = formatTimeWIB(checkOutTime);
+      const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+      const durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+      await sendNotification({
+        userId,
+        title: "Absen Pulang Berhasil ✅",
+        message: `Jam masuk: ${inWib} WIB | Jam keluar: ${outWib} WIB | Durasi: ${durationHours} jam ${durationMinutes} menit. Hati-hati di jalan, selamat beristirahat! 🏡`,
+        type: "attendance",
+        url: "/dashboard",
       });
     }
 

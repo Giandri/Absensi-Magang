@@ -282,7 +282,11 @@ export default function Clock() {
       },
       {
         onSuccess: () => {
-          toast.success("Absen Pulang Berhasil!", { description: formatTime(new Date()) });
+          const checkInStr = todayAttendance?.attendance?.checkInTime
+            ? formatTime(new Date(todayAttendance.attendance.checkInTime)).split(':').slice(0, 2).join(':')
+            : "--:--";
+          const checkOutStr = formatTime(new Date()).split(':').slice(0, 2).join(':');
+          toast.success("Absen Pulang Berhasil!", { description: `Jam masuk: ${checkInStr} • Jam keluar: ${checkOutStr}` });
           setOpenClockOut(false);
           setCheckoutNote("");
         },

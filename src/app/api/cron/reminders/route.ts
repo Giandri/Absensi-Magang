@@ -4,22 +4,23 @@ import { sendNotification } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   try {
-    // Basic security check: allow cron only via Vercel or local secret token
+    // cron only via Vercel
     const authHeader = request.headers.get("authorization");
     const isVercelCron = request.headers.get("user-agent")?.includes("Vercel-Cron");
-    const cronSecret = process.env.CRON_SECRET || "local-test-secret"; // define a CRON_SECRET in .env later
+    const cronSecret = process.env.CRON_SECRET || "local-test-secret";
 
     if (!isVercelCron && authHeader !== `Bearer ${cronSecret}`) {
-      // return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
       console.warn("Unauthorized cron attempt. Bypass for local testing.");
-      // In production, uncomment the return statement above!
+
     }
 
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type"); // "morning" or "evening"
+    const type = searchParams.get("type");
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const { getTodayWIB, getTomorrowWIB } = await import("@/lib/date");
+    const todayWIB = getTodayWIB();
+    const tomorrowWIB = getTomorrowWIB();
 
     const users = await prisma.user.findMany({
       where: {
@@ -29,9 +30,11 @@ export async function GET(request: Request) {
         attendances: {
           where: {
             date: {
-              gte: today,
+              gte: todayWIB,
+              lt: tomorrowWIB,
             },
           },
+          take: 1,
         },
       },
     });
@@ -55,9 +58,13 @@ export async function GET(request: Request) {
 
       if (type === "evening") {
         if (hasCheckedIn && !hasCheckedOut) {
+          const checkInTime = user.attendances[0].checkInTime;
+          const checkInWib = checkInTime
+            ? new Date(checkInTime).toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour12: false, hour: "2-digit", minute: "2-digit" })
+            : "--:--";
           await sendNotification({
             userId: user.id,
-            title: "Waktunya Absen Keluar!",
+            title: "Waktunya Absen Pulang!",
             message: "Sudah waktunya pulang. Jangan lupa absen keluar ya! 🏡",
             type: "reminder",
             url: "/dashboard",

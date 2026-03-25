@@ -44,3 +44,17 @@ export function formatWIB(date: Date | string): string {
     const d = new Date(date);
     return d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
 }
+
+/**
+ * Format Date to HH:mm WIB string reliably (manual UTC+7 offset)
+ */
+export function formatTimeWIB(date: Date | string): string {
+    const d = new Date(date);
+    // Convert UTC to WIB (UTC+7) manually
+    const utcMs = d.getTime() + d.getTimezoneOffset() * 60 * 1000;
+    const wibMs = utcMs + WIB_OFFSET;
+    const wibDate = new Date(wibMs);
+    const hours = wibDate.getHours().toString().padStart(2, "0");
+    const minutes = wibDate.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+}
