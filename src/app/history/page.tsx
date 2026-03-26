@@ -388,49 +388,65 @@ export default function HistoryPage() {
                           <p className="text-xl sm:text-2xl font-black text-gray-900">{selectedItem.checkOut}</p>
                         </div>
                       ) : (
-                        <div className={cn(
-                            "relative transition-all duration-500 ease-out-expo",
-                            isEditingCheckout ? "col-span-2" : "col-span-1"
-                          )}>
-                            {isEditingCheckout ? (
-                              <div className="p-3 bg-white rounded-3xl border-2 border-yellow-400/20 shadow-xl shadow-yellow-900/5 flex items-center justify-between gap-4 w-full animate-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex-1">
-                                  <ScrollTimePicker
-                                    value={newCheckoutTime || "17:00"}
-                                    onChange={setNewCheckoutTime}
-                                  />
-                                </div>
-                                <div className="flex gap-2 pr-2">
-                                  <button
-                                    onClick={handleSaveCheckout}
-                                    disabled={isSavingCheckout || !newCheckoutTime}
-                                    className="w-12 h-12 bg-yellow-400 text-black rounded-2xl hover:bg-yellow-500 transition-all active:scale-90 disabled:opacity-50 flex items-center justify-center shadow-lg shadow-yellow-400/20"
-                                    title="Simpan"
-                                  >
-                                    {isSavingCheckout ? <Loader2 className="h-6 w-6 animate-spin" /> : <Check className="h-6 w-6" />}
-                                  </button>
-                                  <button
-                                    onClick={() => setIsEditingCheckout(false)}
-                                    className="w-12 h-12 bg-gray-50 text-gray-400 rounded-2xl hover:bg-gray-100 transition-all active:scale-90 flex items-center justify-center border border-gray-100"
-                                    title="Batal"
-                                  >
-                                    <X className="h-6 w-6" />
-                                  </button>
-                                </div>
+                        (() => {
+                          const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+                          const isToday = selectedItem.dateISO === todayStr;
+
+                          if (isToday) {
+                            return (
+                              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
+                                <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase mb-1">Pulang</p>
+                                <p className="text-lg sm:text-xl font-black text-gray-300">--:--</p>
                               </div>
-                            ) : (
-                              <div
-                                onClick={() => {
-                                  setIsEditingCheckout(true);
-                                  setNewCheckoutTime("17:00");
-                                }}
-                                className="h-full p-4 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-200 cursor-pointer hover:bg-yellow-100 transition-all active:scale-95 group flex flex-col justify-center"
-                              >
-                                <p className="text-[10px] sm:text-xs font-bold text-yellow-600 uppercase mb-1 group-hover:text-yellow-700">Pulang</p>
-                                <p className="text-lg sm:text-xl font-black text-yellow-400 group-hover:text-yellow-500">Isi Jam</p>
-                              </div>
-                            )}
-                          </div>
+                            );
+                          }
+
+                          return (
+                            <div className={cn(
+                              "relative transition-all duration-500 ease-out-expo",
+                              isEditingCheckout ? "col-span-2" : "col-span-1"
+                            )}>
+                              {isEditingCheckout ? (
+                                <div className="p-3 bg-white rounded-3xl border-2 border-yellow-400/20 shadow-xl shadow-yellow-900/5 flex items-center justify-between gap-4 w-full animate-in slide-in-from-bottom-4 duration-500">
+                                  <div className="flex-1">
+                                    <ScrollTimePicker
+                                      value={newCheckoutTime || "17:00"}
+                                      onChange={setNewCheckoutTime}
+                                    />
+                                  </div>
+                                  <div className="flex gap-2 pr-2">
+                                    <button
+                                      onClick={handleSaveCheckout}
+                                      disabled={isSavingCheckout || !newCheckoutTime}
+                                      className="w-12 h-12 bg-yellow-400 text-black rounded-2xl hover:bg-yellow-500 transition-all active:scale-90 disabled:opacity-50 flex items-center justify-center shadow-lg shadow-yellow-400/20"
+                                      title="Simpan"
+                                    >
+                                      {isSavingCheckout ? <Loader2 className="h-6 w-6 animate-spin" /> : <Check className="h-6 w-6" />}
+                                    </button>
+                                    <button
+                                      onClick={() => setIsEditingCheckout(false)}
+                                      className="w-12 h-12 bg-gray-50 text-gray-400 rounded-2xl hover:bg-gray-100 transition-all active:scale-90 flex items-center justify-center border border-gray-100"
+                                      title="Batal"
+                                    >
+                                      <X className="h-6 w-6" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div
+                                  onClick={() => {
+                                    setIsEditingCheckout(true);
+                                    setNewCheckoutTime("17:00");
+                                  }}
+                                  className="h-full p-4 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-200 cursor-pointer hover:bg-yellow-100 transition-all active:scale-95 group flex flex-col justify-center"
+                                >
+                                  <p className="text-[10px] sm:text-xs font-bold text-yellow-600 uppercase mb-1 group-hover:text-yellow-700">Pulang</p>
+                                  <p className="text-lg sm:text-xl font-black text-yellow-400 group-hover:text-yellow-500">Isi Jam</p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()
                       )}
                     </div>
 
