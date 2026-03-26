@@ -249,14 +249,12 @@ export default function HistoryPage() {
     setIsSavingCheckout(true);
     try {
       const checkOutISO = new Date(`${selectedItem.dateISO}T${newCheckoutTime}:00`).toISOString();
-      const response = await fetch("/api/admin/attendance", {
-        method: "POST",
+      const response = await fetch("/api/attendance/checkout", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: userId,
           date: selectedItem.dateISO,
           checkOutTime: checkOutISO,
-          // Since it's an update, we only need these
         }),
       });
 
@@ -292,13 +290,13 @@ export default function HistoryPage() {
 
               <CalendarDate>
                 <CalendarDatePicker>
-                  <CalendarMonthPicker className="border-none shadow-none font-bold text-lg" />
-                  <CalendarYearPicker start={2024} end={2026} className="border-none shadow-none font-bold text-lg" />
+                  <CalendarMonthPicker className="border-none shadow-none font-bold text-sm" />
+                  <CalendarYearPicker start={2024} end={2026} className="border-none shadow-none font-bold text-sm" />
                 </CalendarDatePicker>
                 <CalendarDatePagination />
               </CalendarDate>
 
-              <CalendarHeader className="bg-gray-50/50 font-semibold text-gray-500 uppercase tracking-wider text-[10px]" />
+              <CalendarHeader className="bg-gray-50/50 font-semibold text-gray-500 uppercase tracking-wider text-[8px]" />
 
               {!isMounted || isLoading ? (
                 <div className="grid grid-cols-7 border-t border-gray-100">
@@ -436,12 +434,12 @@ export default function HistoryPage() {
                                 <div
                                   onClick={() => {
                                     setIsEditingCheckout(true);
-                                    setNewCheckoutTime("17:00");
+                                    setNewCheckoutTime("16:00");
                                   }}
                                   className="h-full p-4 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-200 cursor-pointer hover:bg-yellow-100 transition-all active:scale-95 group flex flex-col justify-center"
                                 >
                                   <p className="text-[10px] sm:text-xs font-bold text-yellow-600 uppercase mb-1 group-hover:text-yellow-700">Pulang</p>
-                                  <p className="text-lg sm:text-xl font-black text-yellow-400 group-hover:text-yellow-500">Isi Jam</p>
+                                  <p className="text-lg sm:text-xl font-black text-yellow-400 group-hover:text-yellow-500">--:--</p>
                                 </div>
                               )}
                             </div>
