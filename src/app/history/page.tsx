@@ -388,10 +388,7 @@ export default function HistoryPage() {
                           <p className="text-xl sm:text-2xl font-black text-gray-900">{selectedItem.checkOut}</p>
                         </div>
                       ) : (
-                        <>
-                          {/* Manual Checkout - DISABLED TEMPORARILY */}
-                          {/* 
-                          <div className={cn(
+                        <div className={cn(
                             "relative transition-all duration-500 ease-out-expo",
                             isEditingCheckout ? "col-span-2" : "col-span-1"
                           )}>
@@ -433,13 +430,7 @@ export default function HistoryPage() {
                                 <p className="text-lg sm:text-xl font-black text-yellow-400 group-hover:text-yellow-500">Isi Jam</p>
                               </div>
                             )}
-                          </div> 
-                          */}
-                          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
-                            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase mb-1">Pulang</p>
-                            <p className="text-lg sm:text-xl font-black text-gray-300">--:--</p>
                           </div>
-                        </>
                       )}
                     </div>
 
