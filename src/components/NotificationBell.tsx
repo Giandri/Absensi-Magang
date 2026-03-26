@@ -42,7 +42,7 @@ export default function NotificationBell() {
       if (res.ok) {
         const result = await res.json();
         setNotifications(result.data || []);
-        setUnreadCount(result.data?.filter((n: any) => !n.read).length || 0);
+        setUnreadCount(result.data?.filter((n: any) => !n.isRead).length || 0);
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
@@ -214,11 +214,11 @@ export default function NotificationBell() {
               <DropdownMenuItem 
                 key={n.id} 
                 onClick={() => markAsRead(n.id)}
-                className={`p-4 border-b last:border-0 flex flex-col items-start gap-1 cursor-pointer transition-colors ${!n.read ? 'bg-yellow-50/30' : 'bg-transparent'}`}
+                className={`p-4 border-b last:border-0 flex flex-col items-start gap-1 cursor-pointer transition-colors ${!n.isRead ? 'bg-yellow-50/30' : 'bg-transparent'}`}
               >
                 <div className="flex w-full items-start justify-between gap-2">
-                  <span className={`text-sm font-bold ${!n.read ? 'text-gray-900' : 'text-gray-600'}`}>{n.title}</span>
-                  {!n.read && <div className="w-2 h-2 bg-yellow-400 rounded-full mt-1.5 shrink-0" />}
+                  <span className={`text-sm font-bold ${!n.isRead ? 'text-gray-900' : 'text-gray-600'}`}>{n.title}</span>
+                  {!n.isRead && <div className="w-2 h-2 bg-yellow-400 rounded-full mt-1.5 shrink-0" />}
                 </div>
                 <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{n.message}</p>
                 <span className="text-[9px] text-gray-400 mt-1 uppercase font-medium">
