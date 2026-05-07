@@ -196,9 +196,20 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         let { userId, date, checkInTime, checkOutTime, notes, actionType, permissionType } = body;
 
-        // Ensure user is admin
+        // Admin can submit for any user; regular users can only submit for themselves if permitted
         if (session.user.role !== "admin") {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+            // Check if user has manual attendance permission
+            const userRecord = await prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { canManualAttendance: true },
+            });
+
+            if (!userRecord?.canManualAttendance) {
+                return NextResponse.json({ message: "Anda tidak memiliki izin untuk absen manual" }, { status: 403 });
+            }
+
+            // Force userId to session user (prevent spoofing)
+            userId = session.user.id;
         }
 
         if (!userId || !date) {
@@ -273,7 +284,7 @@ export async function POST(request: NextRequest) {
                     where: { id: existingAttendance.id },
                     data: {
                         checkOutTime: checkOutDate,
-                        notes: notes || existingAttendance.notes || "Manual check-out update",
+                        notes: notes || existingAttendance.notes || null,
                     },
                 });
                 return NextResponse.json({
@@ -301,7 +312,7 @@ export async function POST(request: NextRequest) {
                 checkInTime: checkInDate,
                 checkOutTime: checkOutDate,
                 status,
-                notes: notes || "Manual entry",
+                notes: notes || null,
                 checkInLatitude: OFFICE_CONFIG.latitude,
                 checkInLongitude: OFFICE_CONFIG.longitude,
             },

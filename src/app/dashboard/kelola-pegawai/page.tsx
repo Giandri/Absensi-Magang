@@ -101,6 +101,7 @@ function UserForm({ user, onClose, onSuccess }: { user?: User; onClose: () => vo
         <input 
           type="checkbox" 
           id="canManualAttendance" 
+          title="Izinkan Absen Manual"
           checked={formData.canManualAttendance} 
           onChange={(e) => setFormData({ ...formData, canManualAttendance: e.target.checked })}
           className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
