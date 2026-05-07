@@ -370,7 +370,7 @@ export default function HistoryPage() {
                 {selectedItem.type === "attendance" ? (
                   <>
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                      {/* Masuk Card - Always visible */}
+                      {/* Masuk Card */}
                       <div className={cn(
                         "p-4 bg-gray-50 rounded-2xl border border-gray-100 transition-all duration-300",
                         isEditingCheckout ? "opacity-50 scale-95 origin-left" : "opacity-100"

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         phone: true,
         address: true,
         role: true,
+        canManualAttendance: true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -41,7 +42,7 @@ export async function PUT(request: NextRequest) {
   try {
     console.log("🔄 [TEMP PUT] Starting update...");
 
-    const { id, name, email, phone, address, password } = await request.json();
+    const { id, name, email, phone, address, password, canManualAttendance } = await request.json();
     console.log("📝 [TEMP PUT] Received data:", { id, name, email, phone: phone ? "***" : null, address, hasPassword: !!password });
 
     // Validate required fields
@@ -84,6 +85,7 @@ export async function PUT(request: NextRequest) {
       email,
       phone,
       address,
+      canManualAttendance: Boolean(canManualAttendance),
     };
 
     // Only update password if provided
@@ -101,6 +103,7 @@ export async function PUT(request: NextRequest) {
         phone: true,
         address: true,
         role: true,
+        canManualAttendance: true,
         createdAt: true,
       },
     });
@@ -129,7 +132,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const { name, email, phone, address, password } = await request.json();
+    const { name, email, phone, address, password, canManualAttendance } = await request.json();
 
     // Validate required fields
     if (!name || !email || !password) {
@@ -160,6 +163,7 @@ export async function POST(request: NextRequest) {
         address,
         password: hashedPassword,
         role: "user",
+        canManualAttendance: Boolean(canManualAttendance),
       },
       select: {
         id: true,
@@ -168,6 +172,7 @@ export async function POST(request: NextRequest) {
         phone: true,
         address: true,
         role: true,
+        canManualAttendance: true,
         createdAt: true,
       },
     });

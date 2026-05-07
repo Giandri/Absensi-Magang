@@ -11,7 +11,7 @@ import { useState, useMemo } from "react";
 import { ManualAttendanceModal } from "@/components/ManualAttendanceModal";
 import { useSession } from "next-auth/react";
 import { useTodayAttendance } from "@/hooks/auth";
-
+import { useEffect } from "react";
 
 const Maps = dynamic(() => import("@/components/Maps"), {
   ssr: false,
@@ -26,7 +26,22 @@ const Maps = dynamic(() => import("@/components/Maps"), {
 
 export default function AbsenApp() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [allowManualAttendance, setAllowManualAttendance] = useState(false);
   const { data: session } = useSession();
+
+  useEffect(() => {
+    // Check global setting AND user permission
+    Promise.all([
+      fetch("/api/admin/settings").then((r) => r.json()),
+      fetch("/api/profile").then((r) => r.json()),
+    ])
+      .then(([settingsData, profileData]) => {
+        const globalEnabled = settingsData?.data?.allowManualAttendance === true;
+        const userAllowed = profileData?.data?.canManualAttendance === true;
+        setAllowManualAttendance(globalEnabled && userAllowed);
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
   const userId = useMemo(() => {
     if (session?.user?.id) return session.user.id;
@@ -57,31 +72,30 @@ export default function AbsenApp() {
             <Clock />
           </section>
 
-{/* Section: QUICK ACTIONS - DISABLED TEMPORARILY */}
-{/* 
-          <section className="space-y-3">
-             <div className="flex items-center justify-between px-1">
-                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Opsi Lainnya</h3>
-             </div>
-             <ManualAttendanceModal 
-                open={isModalOpen} 
-                onOpenChange={setIsModalOpen} 
-                trigger={
-                  <Button onClick={() => setIsModalOpen(true)} className="w-full bg-white hover:bg-yellow-50 text-slate-700 border-2 border-dashed border-slate-100 hover:border-yellow-200 shadow-none flex items-center justify-between px-5 h-14 rounded-2xl font-black text-xs transition-all active:scale-[0.98] group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-500 transition-colors">
-                        <PlusCircle className="h-4 w-4 text-yellow-600 group-hover:text-white" />
+          {allowManualAttendance && (
+            <section className="space-y-3">
+               <div className="flex items-center justify-between px-1">
+                  <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Opsi Lainnya</h3>
+               </div>
+               <ManualAttendanceModal 
+                  open={isModalOpen} 
+                  onOpenChange={setIsModalOpen} 
+                  trigger={
+                    <Button onClick={() => setIsModalOpen(true)} className="w-full bg-white hover:bg-yellow-50 text-slate-700 border-2 border-dashed border-slate-100 hover:border-yellow-200 shadow-none flex items-center justify-between px-5 h-14 rounded-2xl font-black text-xs transition-all active:scale-[0.98] group">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-500 transition-colors">
+                          <PlusCircle className="h-4 w-4 text-yellow-600 group-hover:text-white" />
+                        </div>
+                        <span>TAMBAH ABSEN MANUAL</span>
                       </div>
-                      <span>TAMBAH ABSEN MANUAL</span>
-                    </div>
-                    <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center">
-                       <PlusCircle className="h-3 w-3 text-slate-300" />
-                    </div>
-                  </Button>
-                }
-              />
-          </section> 
-*/}
+                      <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center">
+                         <PlusCircle className="h-3 w-3 text-slate-300" />
+                      </div>
+                    </Button>
+                  }
+                />
+            </section> 
+          )}
 
           {/* Section: PERMISSION */}
           <section>

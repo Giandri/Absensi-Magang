@@ -20,6 +20,7 @@ interface User {
   phone: string | null;
   address: string | null;
   role: string;
+  canManualAttendance?: boolean;
   createdAt: string;
 }
 
@@ -30,6 +31,7 @@ function UserForm({ user, onClose, onSuccess }: { user?: User; onClose: () => vo
     phone: user?.phone || "",
     address: user?.address || "",
     password: "",
+    canManualAttendance: user?.canManualAttendance || false,
   });
   const [loading, setLoading] = useState(false);
 
@@ -93,6 +95,17 @@ function UserForm({ user, onClose, onSuccess }: { user?: User; onClose: () => vo
       <div>
         <Label htmlFor="address">Alamat</Label>
         <Input id="address" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+      </div>
+
+      <div className="flex items-center space-x-2 pt-2">
+        <input 
+          type="checkbox" 
+          id="canManualAttendance" 
+          checked={formData.canManualAttendance} 
+          onChange={(e) => setFormData({ ...formData, canManualAttendance: e.target.checked })}
+          className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
+        />
+        <Label htmlFor="canManualAttendance" className="cursor-pointer">Izinkan Absen Manual</Label>
       </div>
 
       <div className="flex gap-2 pt-4">

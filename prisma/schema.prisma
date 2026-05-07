@@ -16,6 +16,7 @@ model User {
   role      String   @default("user") 
   phone     String? 
   address   String? 
+  canManualAttendance Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -99,4 +100,12 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+model SystemSetting {
+  id                    String   @id @default("global")
+  allowManualAttendance Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+
+  @@map("system_settings")
 }

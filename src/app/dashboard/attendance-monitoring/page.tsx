@@ -111,7 +111,7 @@ export default function AttendanceMonitoringPage() {
   const [data, setData] = useState<AdminAttendanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // State untuk Manual Attendance Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -154,10 +154,10 @@ export default function AttendanceMonitoringPage() {
     setIsSubmitting(true);
     try {
       // Create full ISO strings for times
-      const checkInISO = activeTab === "attendance" 
+      const checkInISO = activeTab === "attendance"
         ? new Date(`${formData.date}T${formData.checkInTime}:00`).toISOString()
         : null;
-      const checkOutISO = activeTab === "attendance" && formData.checkOutTime 
+      const checkOutISO = activeTab === "attendance" && formData.checkOutTime
         ? new Date(`${formData.date}T${formData.checkOutTime}:00`).toISOString()
         : null;
 
@@ -178,15 +178,14 @@ export default function AttendanceMonitoringPage() {
       if (response.ok) {
         sonnerToast.success(result.message || "Berhasil menyimpan data");
         setIsModalOpen(false);
-        fetchData(); // Refresh data
-        // Reset form
+        fetchData();
         setFormData({
-            userId: "",
-            date: new Date().toISOString().split("T")[0],
-            checkInTime: "08:00",
-            checkOutTime: "16:00",
-            notes: "",
-            permissionType: "izin"
+          userId: "",
+          date: new Date().toISOString().split("T")[0],
+          checkInTime: "08:00",
+          checkOutTime: "16:00",
+          notes: "",
+          permissionType: "izin"
         });
       } else {
         sonnerToast.error(result.message || "Gagal menyimpan data");
@@ -201,14 +200,14 @@ export default function AttendanceMonitoringPage() {
 
   const handleQuickAction = (userId: string, action: "attendance" | "permission") => {
     setFormData(prev => ({
-        ...prev,
-        userId: userId,
-        date: selectedDate, // Use currently viewed date
-        checkInTime: "08:00",
-        checkOutTime: "16:00",
-        notes: ""
+      ...prev,
+      userId: userId,
+      date: selectedDate,
+      checkInTime: "08:00",
+      checkOutTime: "16:00",
+      notes: ""
     }));
-    
+
     setActiveTab(action);
     setIsModalOpen(true);
   };
@@ -230,21 +229,21 @@ export default function AttendanceMonitoringPage() {
 
   const allEmployees = data
     ? [
-        ...data.attendance.map((a) => ({ ...a, permissionType: null as string | null })),
-        ...data.absentUsers.map((u) => ({
-          id: u.id,
-          employee: u.employee,
-          email: u.email,
-          userId: u.id,
-          checkIn: null,
-          checkOut: null,
-          status: u.status,
-          location: "N/A",
-          workHours: "0j 0m",
-          notes: "",
-          permissionType: u.permissionType || null,
-        })),
-      ]
+      ...data.attendance.map((a) => ({ ...a, permissionType: null as string | null })),
+      ...data.absentUsers.map((u) => ({
+        id: u.id,
+        employee: u.employee,
+        email: u.email,
+        userId: u.id,
+        checkIn: null,
+        checkOut: null,
+        status: u.status,
+        location: "N/A",
+        workHours: "0j 0m",
+        notes: "",
+        permissionType: u.permissionType || null,
+      })),
+    ]
     : [];
 
   return (
@@ -259,7 +258,7 @@ export default function AttendanceMonitoringPage() {
               <h1 className="text-3xl font-bold text-gray-900">Monitoring Kehadiran</h1>
               <p className="text-gray-600 mt-1">Pelacakan dan monitoring kehadiran peserta magang</p>
             </div>
-            
+
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold flex items-center gap-2">
@@ -269,123 +268,123 @@ export default function AttendanceMonitoringPage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px] bg-white p-0 overflow-hidden border-none shadow-2xl">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid grid-cols-2 w-full h-14 rounded-none bg-gray-100 p-1">
-                        <TabsTrigger value="attendance" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Presensi</TabsTrigger>
-                        <TabsTrigger value="permission" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Izin / Sakit</TabsTrigger>
-                    </TabsList>
+                  <TabsList className="grid grid-cols-2 w-full h-14 rounded-none bg-gray-100 p-1">
+                    <TabsTrigger value="attendance" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Presensi</TabsTrigger>
+                    <TabsTrigger value="permission" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-none">Izin / Sakit</TabsTrigger>
+                  </TabsList>
 
-                    <div className="p-6">
-                        <DialogHeader className="mb-4">
-                        <DialogTitle className="text-xl">
-                            {activeTab === "attendance" ? "Absensi Manual" : "Input Izin / Permit"}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {activeTab === "attendance" 
-                                ? "Isi jam masuk/pulang untuk peserta yang lupa melakukan scan."
-                                : "Catat keterangan izin, sakit, atau libur untuk peserta."}
-                        </DialogDescription>
-                        </DialogHeader>
+                  <div className="p-6">
+                    <DialogHeader className="mb-4">
+                      <DialogTitle className="text-xl">
+                        {activeTab === "attendance" ? "Absensi Manual" : "Input Izin / Permit"}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {activeTab === "attendance"
+                          ? "Isi jam masuk/pulang untuk peserta yang lupa melakukan scan."
+                          : "Catat keterangan izin, sakit, atau libur untuk peserta."}
+                      </DialogDescription>
+                    </DialogHeader>
 
-                        <form onSubmit={handleManualSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="userId">Pilih Pemagang</Label>
-                            <Select 
-                            value={formData.userId} 
-                            onValueChange={(val) => setFormData({...formData, userId: val})}
-                            >
+                    <form onSubmit={handleManualSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="userId">Pilih Pemagang</Label>
+                        <Select
+                          value={formData.userId}
+                          onValueChange={(val) => setFormData({ ...formData, userId: val })}
+                        >
+                          <SelectTrigger className="w-full border-gray-200">
+                            <SelectValue placeholder="Pilih pemagang..." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white border shadow-md">
+                            {allEmployees.map((emp) => (
+                              <SelectItem key={emp.id} value={emp.userId || emp.id}>
+                                {emp.employee} {emp.status === 'absent' ? '(Belum Ada Data)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="manual-date">Tanggal</Label>
+                        <Input
+                          id="manual-date"
+                          type="date"
+                          className="border-gray-200"
+                          value={formData.date}
+                          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                        />
+                      </div>
+
+                      {activeTab === "attendance" ? (
+                        <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1">
+                          <div className="space-y-2">
+                            <Label htmlFor="checkIn">Jam Masuk</Label>
+                            <Input
+                              id="checkIn"
+                              type="time"
+                              className="border-gray-200"
+                              value={formData.checkInTime}
+                              onChange={(e) => setFormData({ ...formData, checkInTime: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="checkOut">Jam Pulang</Label>
+                            <Input
+                              id="checkOut"
+                              type="time"
+                              className="border-gray-200"
+                              value={formData.checkOutTime}
+                              onChange={(e) => setFormData({ ...formData, checkOutTime: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                          <Label htmlFor="permissionType">Keterangan</Label>
+                          <Select
+                            value={formData.permissionType}
+                            onValueChange={(val) => setFormData({ ...formData, permissionType: val })}
+                          >
                             <SelectTrigger className="w-full border-gray-200">
-                                <SelectValue placeholder="Pilih pemagang..." />
+                              <SelectValue placeholder="Pilih jenis izin..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white border shadow-md">
-                                {allEmployees.map((emp) => (
-                                <SelectItem key={emp.id} value={emp.userId || emp.id}>
-                                    {emp.employee} {emp.status === 'absent' ? '(Belum Ada Data)' : ''}
-                                </SelectItem>
-                                ))}
+                              <SelectItem value="izin">Izin</SelectItem>
+                              <SelectItem value="sakit">Sakit</SelectItem>
+                              <SelectItem value="libur">Libur / Cuti</SelectItem>
                             </SelectContent>
-                            </Select>
+                          </Select>
                         </div>
-                        
-                        <div className="space-y-2">
-                            <Label htmlFor="manual-date">Tanggal</Label>
-                            <Input 
-                            id="manual-date" 
-                            type="date" 
-                            className="border-gray-200"
-                            value={formData.date}
-                            onChange={(e) => setFormData({...formData, date: e.target.value})}
-                            />
-                        </div>
+                      )}
 
-                        {activeTab === "attendance" ? (
-                            <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1">
-                                <div className="space-y-2">
-                                <Label htmlFor="checkIn">Jam Masuk</Label>
-                                <Input 
-                                    id="checkIn" 
-                                    type="time" 
-                                    className="border-gray-200"
-                                    value={formData.checkInTime}
-                                    onChange={(e) => setFormData({...formData, checkInTime: e.target.value})}
-                                />
-                                </div>
-                                <div className="space-y-2">
-                                <Label htmlFor="checkOut">Jam Pulang</Label>
-                                <Input 
-                                    id="checkOut" 
-                                    type="time" 
-                                    className="border-gray-200"
-                                    value={formData.checkOutTime}
-                                    onChange={(e) => setFormData({...formData, checkOutTime: e.target.value})}
-                                />
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-                                <Label htmlFor="permissionType">Keterangan</Label>
-                                <Select 
-                                    value={formData.permissionType} 
-                                    onValueChange={(val) => setFormData({...formData, permissionType: val})}
-                                >
-                                    <SelectTrigger className="w-full border-gray-200">
-                                        <SelectValue placeholder="Pilih jenis izin..." />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white border shadow-md">
-                                        <SelectItem value="izin">Izin</SelectItem>
-                                        <SelectItem value="sakit">Sakit</SelectItem>
-                                        <SelectItem value="libur">Libur / Cuti</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-                        
-                        <div className="space-y-2">
-                            <Label htmlFor="manual-notes">Catatan Tambahan</Label>
-                            <Input 
-                            id="manual-notes" 
-                            className="border-gray-200"
-                            placeholder={activeTab === 'attendance' ? "Contoh: Lupa scan" : "Contoh: Ada urusan keluarga"} 
-                            value={formData.notes}
-                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                            />
-                        </div>
-                        
-                        <DialogFooter className="pt-4">
-                            <Button 
-                            type="submit" 
-                            disabled={isSubmitting || !formData.userId}
-                            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-11"
-                            >
-                            {isSubmitting ? (
-                                <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Memproses...
-                                </>
-                            ) : "Simpan Perubahan"}
-                            </Button>
-                        </DialogFooter>
-                        </form>
-                    </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="manual-notes">Catatan Tambahan</Label>
+                        <Input
+                          id="manual-notes"
+                          className="border-gray-200"
+                          placeholder={activeTab === 'attendance' ? "Contoh: Lupa scan" : "Contoh: Ada urusan keluarga"}
+                          value={formData.notes}
+                          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        />
+                      </div>
+
+                      <DialogFooter className="pt-4">
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting || !formData.userId}
+                          className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold h-11"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Memproses...
+                            </>
+                          ) : "Simpan Perubahan"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </div>
                 </Tabs>
               </DialogContent>
             </Dialog>
@@ -404,15 +403,15 @@ export default function AttendanceMonitoringPage() {
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
                   <label htmlFor="date-filter" className="sr-only">Pilih Tanggal</label>
-                  <input 
+                  <input
                     id="date-filter"
-                    type="date" 
-                    value={selectedDate} 
+                    type="date"
+                    value={selectedDate}
                     title="Pilih Tanggal"
                     placeholder="Pilih Tanggal"
                     aria-label="Pilih Tanggal"
-                    onChange={(e) => setSelectedDate(e.target.value)} 
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400" 
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   />
                 </div>
 
@@ -582,38 +581,38 @@ export default function AttendanceMonitoringPage() {
                             </div>
                           </td>
                           <td className="py-3 px-4 text-right">
-                             {employee.status === 'absent' ? (
-                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-8 text-xs border-green-200 text-green-700 hover:bg-green-50"
-                                        onClick={() => handleQuickAction(employee.userId, 'attendance')}
-                                    >
-                                        Hadir
-                                    </Button>
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-8 text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
-                                        onClick={() => handleQuickAction(employee.userId, 'permission')}
-                                    >
-                                        Izin
-                                    </Button>
-                                </div>
-                             ) : (
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-8 text-xs text-gray-400"
-                                    onClick={() => {
-                                        setFormData(prev => ({ ...prev, userId: employee.userId }));
-                                        setIsModalOpen(true);
-                                    }}
+                            {employee.status === 'absent' ? (
+                              <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 text-xs border-green-200 text-green-700 hover:bg-green-50"
+                                  onClick={() => handleQuickAction(employee.userId, 'attendance')}
                                 >
-                                    Edit
+                                  Hadir
                                 </Button>
-                             )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+                                  onClick={() => handleQuickAction(employee.userId, 'permission')}
+                                >
+                                  Izin
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs text-gray-400"
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, userId: employee.userId }));
+                                  setIsModalOpen(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))

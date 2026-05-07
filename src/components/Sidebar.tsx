@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, BarChart3, Activity, LogOut, Users, FileSpreadsheet } from "lucide-react";
+import { ChevronLeft, ChevronRight, BarChart3, Activity, LogOut, Users, FileSpreadsheet, Settings } from "lucide-react";
 import Image from "next/image";
 
 interface SidebarProps {
@@ -46,6 +46,12 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       icon: Users,
       label: "Hubungi Peserta",
       isActive: pathname === "/dashboard/employees",
+    },
+    {
+      href: "/dashboard/settings",
+      icon: Settings,
+      label: "Pengaturan",
+      isActive: pathname === "/dashboard/settings",
     },
   ];
 

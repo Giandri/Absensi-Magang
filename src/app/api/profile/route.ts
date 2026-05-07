@@ -27,6 +27,7 @@ export async function GET() {
                 phone: true,
                 address: true,
                 role: true,
+                canManualAttendance: true,
                 createdAt: true,
             }
         })
