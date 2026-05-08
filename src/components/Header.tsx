@@ -18,6 +18,7 @@ export default function Header() {
     permissionCount: 0,
     remainingQuota: 3
   });
+  const [profile, setProfile] = React.useState<{position?: string} | null>(null);
 
   React.useEffect(() => {
     const fetchStats = async () => {
@@ -32,8 +33,23 @@ export default function Header() {
       }
     };
 
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.data) {
+            setProfile(data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+
     if (session?.user?.id) {
       fetchStats();
+      fetchProfile();
     }
   }, [session]);
 
@@ -72,7 +88,7 @@ export default function Header() {
               <ChevronRight className="w-3 h-3 text-gray-400" />
             </h1>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">
-              {session?.user?.position || "Peserta Magang BWS Babel"}
+              {profile?.position || session?.user?.position || "Peserta Magang BWS Babel"}
             </p>
           </div>
         </div>

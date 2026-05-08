@@ -36,6 +36,7 @@ export const authOptions = {
                     name: user.name,
                     email: user.email,
                     role: user.role ?? "user",
+                    position: user.position,
                 };
             },
         }),
