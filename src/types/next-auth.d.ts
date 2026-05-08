@@ -9,6 +9,7 @@ declare module "next-auth" {
       email?: string | null;
       phone?: string | null;
       address?: string | null;
+      position?: string | null;
     } & DefaultSession["user"];
   }
   interface User {
@@ -18,5 +19,6 @@ declare module "next-auth" {
     email?: string | null;
     phone?: string | null;
     address?: string | null;
+    position?: string | null;
   }
 }

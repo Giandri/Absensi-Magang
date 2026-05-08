@@ -161,6 +161,7 @@ export default function Clock() {
   const [openClockIn, setOpenClockIn] = useState(false);
   const [openClockOut, setOpenClockOut] = useState(false);
   const [checkoutNote, setCheckoutNote] = useState("");
+  const [successOverlay, setSuccessOverlay] = useState<{ show: boolean; type: "masuk" | "pulang"; time?: string }>({ show: false, type: "masuk" });
 
 
   const { data: session, status } = useSession();
@@ -211,6 +212,14 @@ export default function Clock() {
   const formatTime = (date: Date) => date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const formatDate = (date: Date) => date.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
+  const getTimezoneName = () => {
+    const offset = new Date().getTimezoneOffset() / -60;
+    if (offset === 7) return "Waktu Indonesia Barat";
+    if (offset === 8) return "Waktu Indonesia Tengah";
+    if (offset === 9) return "Waktu Indonesia Timur";
+    return "Waktu Standar Lokal";
+  };
+
   const formatCoordinates = (lat: number, lng: number) => {
     const latDir = lat >= 0 ? "N" : "S";
     const lngDir = lng >= 0 ? "E" : "W";
@@ -252,8 +261,10 @@ export default function Clock() {
       },
       {
         onSuccess: () => {
-          toast.success("Absen Masuk Berhasil!", { description: `${formatTime(new Date())} • ${distance}m dari kantor` });
+          // toast.success("Absen Masuk Berhasil!", { description: `${formatTime(new Date())} • ${distance}m dari kantor` });
           setOpenClockIn(false);
+          setSuccessOverlay({ show: true, type: "masuk", time: formatTime(new Date()) });
+          setTimeout(() => setSuccessOverlay((prev) => ({ ...prev, show: false })), 3000);
         },
         onError: (err: any) => toast.error("Absen gagal", { description: err.message }),
       }
@@ -282,13 +293,15 @@ export default function Clock() {
       },
       {
         onSuccess: () => {
-          const checkInStr = todayAttendance?.attendance?.checkInTime
-            ? formatTime(new Date(todayAttendance.attendance.checkInTime)).split(':').slice(0, 2).join(':')
-            : "--:--";
-          const checkOutStr = formatTime(new Date()).split(':').slice(0, 2).join(':');
-          toast.success("Absen Pulang Berhasil!", { description: `Jam masuk: ${checkInStr} • Jam keluar: ${checkOutStr}` });
+          // const checkInStr = todayAttendance?.attendance?.checkInTime
+          //   ? formatTime(new Date(todayAttendance.attendance.checkInTime)).split(':').slice(0, 2).join(':')
+          //   : "--:--";
+          // const checkOutStr = formatTime(new Date()).split(':').slice(0, 2).join(':');
+          // toast.success("Absen Pulang Berhasil!", { description: `Jam masuk: ${checkInStr} • Jam keluar: ${checkOutStr}` });
           setOpenClockOut(false);
           setCheckoutNote("");
+          setSuccessOverlay({ show: true, type: "pulang", time: formatTime(new Date()) });
+          setTimeout(() => setSuccessOverlay((prev) => ({ ...prev, show: false })), 3000);
         },
         onError: (err: any) => toast.error("Absen gagal", { description: err.message }),
       }
@@ -336,7 +349,7 @@ export default function Clock() {
           ) : (
             <div className="mt-4 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Waktu Standar Indonesia</span>
+              <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{getTimezoneName()}</span>
             </div>
           )}
         </div>
@@ -415,8 +428,12 @@ export default function Clock() {
                   <p className="font-black text-slate-800">{formatTime(currentTime)}</p>
                 </div>
                 <div className="bg-slate-50 p-3 rounded-2xl">
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Tanggal</p>
-                  <p className="font-black text-slate-800 text-xs">{formatDate(currentTime)}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Jam Masuk</p>
+                  <p className="font-black text-slate-800">
+                    {todayAttendance?.attendance?.checkInTime
+                      ? formatTime(new Date(todayAttendance.attendance.checkInTime))
+                      : "--:--:--"}
+                  </p>
                 </div>
               </div>
 
@@ -468,8 +485,12 @@ export default function Clock() {
                   <p className="font-black text-slate-800">{formatTime(currentTime)}</p>
                 </div>
                 <div className="bg-slate-50 p-3 rounded-2xl">
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Tanggal</p>
-                  <p className="font-black text-slate-800 text-xs">{formatDate(currentTime)}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Jam Pulang</p>
+                  <p className="font-black text-slate-800">
+                    {todayAttendance?.attendance?.checkOutTime
+                      ? formatTime(new Date(todayAttendance.attendance.checkOutTime))
+                      : "--:--:--"}
+                  </p>
                 </div>
               </div>
 
@@ -513,6 +534,29 @@ export default function Clock() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* SUCCESS OVERLAY */}
+      {successOverlay.show && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/40 backdrop-blur-[24px] animate-in fade-in duration-500 px-6 text-center">
+          <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out flex flex-col items-center">
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-8 bg-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl border-2 border-white ${successOverlay.type === "masuk" ? "text-emerald-500" : "text-rose-500"}`}>
+              <CheckCircle className="w-10 h-10 drop-shadow-sm" strokeWidth={3} />
+            </div>
+
+            <h2 className="text-lg sm:text-xl font-bold text-slate-800 tracking-tighter leading-tight mb-8 max-w-[280px] mx-auto">
+              {successOverlay.type === "masuk"
+                ? "Anda berhasil melakukan absensi masuk, semangat bekerja!"
+                : "Anda berhasil melakukan absensi pulang, selamat beristirahat!"}
+            </h2>
+
+            <div className="px-6 py-3 rounded-full bg-white/50 backdrop-blur-md border border-white shadow-sm">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                WAKTU TERCATAT <span className="text-slate-800 ml-2">{successOverlay.time}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

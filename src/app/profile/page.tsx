@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Header from "@/components/Header";
-import { LogOut, User, Phone, Mail, MapPin, Save, X, LayoutDashboard } from "lucide-react";
+import { LogOut, User, Phone, Mail, MapPin, Save, X, LayoutDashboard, Briefcase } from "lucide-react";
 
 const useUserProfile = (userId?: string) => {
   const [data, setData] = useState<UserData | null>(null);
@@ -59,11 +59,12 @@ interface UserData {
   email: string;
   phone: string;
   address: string;
+  position?: string;
 }
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<UserData>({
@@ -71,6 +72,7 @@ export default function ProfilePage() {
     email: "",
     phone: "",
     address: "",
+    position: "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -136,6 +138,7 @@ export default function ProfilePage() {
           name: formData.name,
           phone: formData.phone,
           address: formData.address,
+          position: formData.position,
         }),
       });
 
@@ -146,6 +149,17 @@ export default function ProfilePage() {
 
       toast.success("Profil berhasil diperbarui!");
       await refetch();
+      // Update session to reflect the new position in Header without reloading
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          position: formData.position,
+        }
+      });
       setOpen(false);
     } catch (error: any) {
       toast.error(error.message || "Gagal simpan profil");
@@ -256,6 +270,14 @@ export default function ProfilePage() {
                   <p className="text-base font-semibold text-gray-900">{userData?.address || "-"}</p>
                 </div>
               </div>
+
+              <div className="flex items-start gap-4">
+                <Briefcase className="w-6 h-6 text-gray-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500">Posisi</p>
+                  <p className="text-base font-semibold text-gray-900">{userData?.position || "Peserta Magang BWS Babel"}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -339,6 +361,11 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Alamat</p>
                   <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="h-9 bg-white" />
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Posisi Magang</p>
+                  <Input value={formData.position || ""} onChange={(e) => setFormData({ ...formData, position: e.target.value })} placeholder="Cth: Peserta Magang BWS Babel" className="h-9 bg-white" />
                 </div>
               </div>
 

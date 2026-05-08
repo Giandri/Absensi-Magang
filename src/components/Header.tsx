@@ -71,7 +71,9 @@ export default function Header() {
               {userName}
               <ChevronRight className="w-3 h-3 text-gray-400" />
             </h1>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">Peserta Magang BWS Babel</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">
+              {session?.user?.position || "Peserta Magang BWS Babel"}
+            </p>
           </div>
         </div>
 
