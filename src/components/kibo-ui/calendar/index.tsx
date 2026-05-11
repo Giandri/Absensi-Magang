@@ -263,15 +263,15 @@ export const CalendarBody = ({ features, children }: CalendarBodyProps) => {
 
     days.push(
       <div
-        className="relative flex h-full w-full flex-col gap-1 p-1 text-muted-foreground text-xs"
+        className="relative flex h-full w-full flex-col text-muted-foreground text-xs overflow-hidden"
         key={day}
       >
-        {day}
-        <div>
+        <div className="absolute inset-0 z-0 flex flex-col w-full h-full">
           {featuresForDay.slice(0, 3).map((feature) => children({ feature }))}
         </div>
+        <span className="p-1 font-bold z-10 pointer-events-none">{day}</span>
         {featuresForDay.length > 3 && (
-          <span className="block text-muted-foreground text-xs">
+          <span className="block text-muted-foreground text-xs p-1 z-10 pointer-events-none mt-auto">
             +{featuresForDay.length - 3} more
           </span>
         )}
@@ -402,6 +402,12 @@ export const CalendarDatePagination = ({
 }: CalendarDatePaginationProps) => {
   const [month, setMonth] = useCalendarMonth();
   const [year, setYear] = useCalendarYear();
+  const { locale } = useContext(CalendarContext);
+
+  const monthName = useMemo(() => {
+    const format = new Intl.DateTimeFormat(locale, { month: "long" }).format;
+    return format(new Date(year, month, 1));
+  }, [month, year, locale]);
 
   const handlePreviousMonth = useCallback(() => {
     if (month === 0) {
@@ -422,12 +428,26 @@ export const CalendarDatePagination = ({
   }, [month, year, setMonth, setYear]);
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <Button onClick={handlePreviousMonth} size="icon" variant="ghost">
-        <ChevronLeftIcon size={16} />
+    <div className={cn("flex items-center justify-between px-4 py-4 w-full", className)}>
+      <Button onClick={handlePreviousMonth} size="icon" variant="outline" className="h-10 w-10 rounded-xl border-gray-200 text-gray-700 shadow-sm active:scale-95 transition-transform">
+        <ChevronLeftIcon size={18} />
       </Button>
-      <Button onClick={handleNextMonth} size="icon" variant="ghost">
-        <ChevronRightIcon size={16} />
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="flex flex-col items-center justify-center hover:bg-gray-50 px-6 py-1.5 rounded-xl transition-colors active:scale-95">
+            <span className="text-lg font-bold text-[#343a40] leading-none mb-1">{monthName}</span>
+            <span className="text-xs font-bold text-gray-400 leading-none">{year}</span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-3 flex gap-2 rounded-2xl" align="center">
+          <CalendarMonthPicker />
+          <CalendarYearPicker start={year - 50} end={year + 50} />
+        </PopoverContent>
+      </Popover>
+
+      <Button onClick={handleNextMonth} size="icon" variant="outline" className="h-10 w-10 rounded-xl border-gray-200 text-gray-700 shadow-sm active:scale-95 transition-transform">
+        <ChevronRightIcon size={18} />
       </Button>
     </div>
   );

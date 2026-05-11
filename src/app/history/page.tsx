@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-
 
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
@@ -13,7 +12,7 @@ import { useAttendanceHistory } from "@/hooks/auth";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
-import { Check, X, Loader2 } from "lucide-react";
+import { Check, X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -21,13 +20,12 @@ import {
   CalendarHeader,
   CalendarBody,
   CalendarItem,
-  CalendarDate,
-  CalendarDatePicker,
-  CalendarMonthPicker,
-  CalendarYearPicker,
-  CalendarDatePagination,
   Feature,
-  useCalendarYear
+  useCalendarYear,
+  useCalendarMonth,
+  monthsForLocale,
+  CalendarDatePagination,
+  type CalendarState,
 } from "@/components/kibo-ui/calendar";
 
 import { ManualAttendanceModal } from "@/components/ManualAttendanceModal";
@@ -144,9 +142,14 @@ export default function HistoryPage() {
   const [isSavingCheckout, setIsSavingCheckout] = useState(false);
   const [nationalHolidays, setNationalHolidays] = useState<{ date: string; name: string }[]>([]);
   const [calendarYear] = useCalendarYear();
+  const [calendarMonth] = useCalendarMonth();
 
-
-
+  const currentMonthHolidays = useMemo(() => {
+    return nationalHolidays.filter((h: any) => {
+      const d = new Date(h.date + "T00:00:00");
+      return d.getMonth() === calendarMonth;
+    });
+  }, [nationalHolidays, calendarMonth]);
 
   const { data: session } = useSession();
 
@@ -210,19 +213,24 @@ export default function HistoryPage() {
       } as Feature & { _original: HistoryItem };
     });
 
-    // Map national holidays
-    const holidayFeatures = nationalHolidays.map((holiday) => {
+    // Map national holidays & cuti bersama
+    const holidayFeatures = nationalHolidays.map((holiday: any) => {
+      const isHoliday = holiday.type !== "leave";
       return {
-        id: `holiday-${holiday.date}`,
+        id: `holiday-${holiday.date}-${holiday.name}`,
         name: holiday.name,
-        startAt: new Date(holiday.date),
-        endAt: new Date(holiday.date),
-        status: { id: "holiday", name: holiday.name, color: "#4f46e5" }, // Indigo for holidays
+        startAt: new Date(holiday.date + "T00:00:00"),
+        endAt: new Date(holiday.date + "T00:00:00"),
+        status: {
+          id: isHoliday ? "holiday" : "leave",
+          name: holiday.name,
+          color: "#ef4444" // Merah untuk libur nasional dan cuti bersama
+        },
         _original: {
           type: "permission",
           permissionType: "libur",
-          emoji: "📅",
-          label: "Hari Libur Nasional",
+          emoji: isHoliday ? "📅" : "🏖️",
+          label: isHoliday ? "Hari Libur Nasional" : "Cuti Bersama",
           date: holiday.date,
           dateISO: holiday.date,
           status: "libur",
@@ -285,17 +293,9 @@ export default function HistoryPage() {
             <h1 className="text-2xl font-bold text-gray-900">Riwayat Saya</h1>
           </div>
 
-          <div className="bg-white overflow-hidden border-y border-gray-100 md:border md:rounded-3xl">
+          <div className="bg-white overflow-hidden border-y border-gray-100 rounded-xl md:border md:rounded-3xl">
             <CalendarProvider locale="id-ID">
-
-              <CalendarDate>
-                <CalendarDatePicker>
-                  <CalendarMonthPicker className="border-none shadow-none font-bold text-sm" />
-                  <CalendarYearPicker start={2024} end={2026} className="border-none shadow-none font-bold text-sm" />
-                </CalendarDatePicker>
-                <CalendarDatePagination />
-              </CalendarDate>
-
+              <CalendarDatePagination />
               <CalendarHeader className="bg-gray-50/50 font-semibold text-gray-500 uppercase tracking-wider text-[8px]" />
 
               {!isMounted || isLoading ? (
@@ -308,30 +308,97 @@ export default function HistoryPage() {
                   ))}
                 </div>
               ) : (
-
                 <CalendarBody features={calendarFeatures}>
-                  {({ feature }) => (
-                    <div
-                      onClick={() => handleOpenDetail(feature)}
-                      key={feature.id}
-                      className="w-full text-left transition-transform active:scale-95 mb-1 cursor-pointer"
-                    >
-                      <CalendarItem
-                        feature={feature}
-                        className="text-[8px] sm:text-[10px] py-0 px-0.5 sm:py-0.5 sm:px-1 rounded-sm sm:rounded-md border truncate"
-                        style={{
-                          backgroundColor: `${feature.status.color}15`,
-                          borderColor: `${feature.status.color}30`,
-                          color: feature.status.color
-                        }}
-                      />
-
-                    </div>
-                  )}
+                  {({ feature }) => {
+                    const extFeature = feature as Feature & { _original: HistoryItem };
+                    return (
+                      <div
+                        onClick={() => handleOpenDetail(feature)}
+                        key={feature.id}
+                        className="w-full flex-1 text-center transition-transform active:scale-95 cursor-pointer flex flex-col"
+                      >
+                        <CalendarItem
+                          feature={feature}
+                          className="text-[9px] sm:text-[11px] px-1.5 pb-1 pt-4 border flex flex-col items-center gap-0 w-full flex-1 overflow-hidden justify-center rounded-sm"
+                          style={{
+                            backgroundColor: `${feature.status.color}15`,
+                            borderColor: feature.status.color,
+                            color: feature.status.color
+                          }}
+                        >
+                          <span className="truncate w-full text-center font-bold leading-tight">{feature.name}</span>
+                          {extFeature._original.type === "attendance" && extFeature._original.checkIn && (
+                            <span className="truncate w-full text-center font-medium opacity-80 leading-tight text-[8px] sm:text-[9px]">
+                              {extFeature._original.checkIn} {extFeature._original.checkOut ? `- ${extFeature._original.checkOut}` : ""}
+                            </span>
+                          )}
+                        </CalendarItem>
+                      </div>
+                    )
+                  }}
                 </CalendarBody>
               )}
             </CalendarProvider>
           </div>
+
+          {/* Daftar Hari Libur Nasional & Cuti Bersama */}
+          {currentMonthHolidays.length > 0 ? (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-gray-900">
+                Hari Libur {monthsForLocale("id-ID")[calendarMonth]} {calendarYear}
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {currentMonthHolidays.map((h: any, i: number) => {
+                  const isHoliday = h.type !== "leave";
+                  return (
+                    <div
+                      key={i}
+                      className="group flex items-center gap-4 p-4 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+                    >
+                      <div className={cn(
+                        "w-12 h-12 rounded-2xl flex flex-col items-center justify-center shrink-0 text-white font-bold transition-transform group-hover:scale-110",
+                        "bg-gradient-to-br from-red-500 to-red-600 shadow-red-500/20 shadow-lg"
+                      )}>
+                        <span className="text-[10px] leading-none uppercase font-medium opacity-90 mb-0.5">
+                          {new Date(h.date + "T00:00:00").toLocaleDateString("id-ID", { month: "short" })}
+                        </span>
+                        <span className="text-lg leading-none">
+                          {new Date(h.date + "T00:00:00").getDate()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate group-hover:text-red-600 transition-colors">{h.name}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[11px] font-medium text-gray-400">
+                            {h.day || new Date(h.date + "T00:00:00").toLocaleDateString("id-ID", { weekday: "long" })}
+                          </span>
+                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                          <span className={cn(
+                            "text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600"
+                          )}>
+                            {isHoliday ? "Libur Nasional" : "Cuti Bersama"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-gray-900">
+                Hari Libur {monthsForLocale("id-ID")[calendarMonth]} {calendarYear}
+              </h3>
+              <div className="p-8 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3">
+                  <span className="text-xl">📅</span>
+                </div>
+                <p className="text-sm font-bold text-gray-900">Tidak ada hari libur</p>
+                <p className="text-xs text-gray-500 mt-1">Belum ada libur nasional atau cuti bersama di bulan ini.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -487,7 +554,7 @@ export default function HistoryPage() {
       </Drawer>
 
       <Navbar />
-    </div>
+    </div >
 
 
   );

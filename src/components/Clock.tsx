@@ -51,20 +51,23 @@ const useHolidayCheck = (): HolidayInfo => {
 
       try {
         const year = today.getFullYear();
-        const response = await fetch(`https://libur.deno.dev/api?year=${year}`);
+        const response = await fetch(`/api/holidays?year=${year}`);
         if (response.ok) {
-          const holidays = await response.json();
-          const todayStr = today.toISOString().split("T")[0];
-          const holiday = holidays.find((h: any) => h.date === todayStr);
+          const result = await response.json();
+          if (result.status === "success") {
+            const holidays = result.data;
+            const todayStr = today.toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
+            const holiday = holidays.find((h: any) => h.date === todayStr);
 
-          if (holiday) {
-            setHolidayInfo({
-              isHoliday: true,
-              isWeekend: false,
-              holidayName: holiday.name || "Hari Libur Nasional",
-              isLoading: false,
-            });
-            return;
+            if (holiday) {
+              setHolidayInfo({
+                isHoliday: true,
+                isWeekend: false,
+                holidayName: holiday.name || "Hari Libur Nasional",
+                isLoading: false,
+              });
+              return;
+            }
           }
         }
       } catch (error) {

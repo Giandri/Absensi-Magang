@@ -1,4 +1,5 @@
-// Utility untuk mengambil data hari libur dari API libur.deno.dev
+// Utility untuk mengambil data hari libur nasional Indonesia
+// Sumber: https://tanggalmerah.upset.dev
 
 interface HolidayData {
   date: string; // YYYY-MM-DD
@@ -14,7 +15,7 @@ interface HolidayCache {
 const holidayCache: HolidayCache = {};
 
 /**
- * Fetch holidays for a specific year from libur.deno.dev
+ * Fetch holidays for a specific year from tanggalmerah.upset.dev
  */
 export async function fetchHolidays(year: number): Promise<HolidayData[]> {
   // Return from cache if available
@@ -23,19 +24,24 @@ export async function fetchHolidays(year: number): Promise<HolidayData[]> {
   }
 
   try {
-    const response = await fetch(`https://libur.deno.dev/api?year=${year}`);
+    const response = await fetch(`https://tanggalmerah.upset.dev/api/holidays?year=${year}`);
     if (!response.ok) {
-      console.warn(`Failed to fetch holidays for ${year}`);
+      console.warn(`Failed to fetch holidays for ${year}: ${response.status}`);
       return [];
     }
 
-    const data = await response.json();
-    
-    // Parse the response - API returns array of holidays
+    const result = await response.json();
+
+    // API returns { success, data: [{ date, day, name, type }], meta }
+    const data = result.data;
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
     const holidays: HolidayData[] = data.map((item: any) => ({
       date: item.date,
-      name: item.name || item.holiday_name || "Hari Libur",
-      is_national_holiday: item.is_national_holiday ?? true,
+      name: item.name,
+      is_national_holiday: item.type === "holiday",
     }));
 
     // Cache the result
@@ -133,4 +139,3 @@ export async function fetchHolidaysForRange(startDate: Date, endDate: Date): Pro
   
   return allHolidays;
 }
-
