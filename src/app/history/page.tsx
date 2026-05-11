@@ -353,32 +353,43 @@ export default function HistoryPage() {
                   return (
                     <div
                       key={i}
-                      className="group flex items-center gap-4 p-4 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+                      className="group relative flex items-center gap-5 p-5 bg-white hover:bg-gray-50/50 rounded-[28px] border border-gray-100 hover:border-red-100 shadow-sm hover:shadow-xl hover:shadow-red-500/5 transition-all duration-500 overflow-hidden cursor-pointer hover:-translate-y-1"
                     >
+                      {/* Glow Effect */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/5 to-transparent rounded-full blur-2xl -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
                       <div className={cn(
-                        "w-12 h-12 rounded-2xl flex flex-col items-center justify-center shrink-0 text-white font-bold transition-transform group-hover:scale-110",
-                        "bg-gradient-to-br from-red-500 to-red-600 shadow-red-500/20 shadow-lg"
+                        "w-14 h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 text-white font-bold transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3",
+                        "bg-gradient-to-br from-red-500 to-red-600 shadow-md shadow-red-500/20 relative z-10"
                       )}>
-                        <span className="text-[10px] leading-none uppercase font-medium opacity-90 mb-0.5">
+                        <span className="text-[10px] leading-none uppercase font-bold tracking-wider opacity-90 mb-1">
                           {new Date(h.date + "T00:00:00").toLocaleDateString("id-ID", { month: "short" })}
                         </span>
-                        <span className="text-lg leading-none">
+                        <span className="text-xl leading-none">
                           {new Date(h.date + "T00:00:00").getDate()}
                         </span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate group-hover:text-red-600 transition-colors">{h.name}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[11px] font-medium text-gray-400">
+                      <div className="flex-1 min-w-0 relative z-10">
+                        <p className="text-base font-bold text-gray-900 truncate group-hover:text-red-600 transition-colors leading-tight mb-2">
+                          {h.name}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                             {h.day || new Date(h.date + "T00:00:00").toLocaleDateString("id-ID", { weekday: "long" })}
                           </span>
-                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                           <span className={cn(
-                            "text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600"
+                            "text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 bg-red-50 text-red-600 border border-red-100 transition-colors group-hover:bg-red-100/50"
                           )}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.5)]"></span>
                             {isHoliday ? "Libur Nasional" : "Cuti Bersama"}
                           </span>
                         </div>
+                      </div>
+
+                      {/* Decorative Chevron */}
+                      <div className="shrink-0 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 relative z-10">
+                        <ChevronRight className="w-5 h-5 text-red-400" />
                       </div>
                     </div>
                   );
