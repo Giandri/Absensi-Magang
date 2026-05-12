@@ -270,7 +270,7 @@ export default function HistoryPage() {
       if (response.ok) {
         toast.success("Jam pulang berhasil disimpan");
         setIsEditingCheckout(false);
-        // We need to refresh data. The custom hook likely allows this
+
         window.location.reload();
       } else {
         toast.error(result.message || "Gagal menyimpan jam pulang");
@@ -289,14 +289,14 @@ export default function HistoryPage() {
       <Header />
       <div className="flex-1 px-4 py-6 md:px-6 lg:px-8 pb-32">
         <div className="max-w-screen-2xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Riwayat Saya</h1>
+          <div className="flex flex-col gap-1 px-1">
+            <h1 className="text-2xl font-extrabold text-black tracking-tight">Riwayat Absensi</h1>
           </div>
 
-          <div className="bg-white overflow-hidden border-y border-gray-100 rounded-xl md:border md:rounded-3xl">
+          <div className="bg-white overflow-hidden border-y border-slate-100 shadow-sm md:border rounded-xl">
             <CalendarProvider locale="id-ID">
               <CalendarDatePagination />
-              <CalendarHeader className="bg-gray-50/50 font-semibold text-gray-500 uppercase tracking-wider text-[8px]" />
+              <CalendarHeader className="bg-slate-50 font-bold text-slate-400 uppercase tracking-widest text-[9px]" />
 
               {!isMounted || isLoading ? (
                 <div className="grid grid-cols-7 border-t border-gray-100">
@@ -343,9 +343,9 @@ export default function HistoryPage() {
 
           {/* Daftar Hari Libur Nasional & Cuti Bersama */}
           {currentMonthHolidays.length > 0 ? (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-900">
-                Hari Libur {monthsForLocale("id-ID")[calendarMonth]} {calendarYear}
+            <div className="space-y-4 mt-8">
+              <h3 className="text-md font-bold text-black tracking-tight px-1">
+                Tanggal Merah di Bulan {monthsForLocale("id-ID")[calendarMonth]} {calendarYear}
               </h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 {currentMonthHolidays.map((h: any, i: number) => {
@@ -397,16 +397,16 @@ export default function HistoryPage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-900">
-                Hari Libur {monthsForLocale("id-ID")[calendarMonth]} {calendarYear}
+            <div className="space-y-4 mt-8">
+              <h3 className="text-lg font-bold text-slate-800 tracking-tight px-1">
+                Tanggal Merah di Bulan  {monthsForLocale("id-ID")[calendarMonth]} {calendarYear}
               </h3>
-              <div className="p-8 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3">
-                  <span className="text-xl">📅</span>
+              <div className="p-8 bg-blue-50/50 rounded-[2rem] border-2 border-dashed border-blue-100 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 border border-blue-50">
+                  <span className="text-2xl">🥺</span>
                 </div>
-                <p className="text-sm font-bold text-gray-900">Tidak ada hari libur</p>
-                <p className="text-xs text-gray-500 mt-1">Belum ada libur nasional atau cuti bersama di bulan ini.</p>
+                <p className="text-base font-bold text-slate-800">Yah, belum ada tanggal merah</p>
+                <p className="text-sm text-slate-500 mt-1 max-w-xs">Tetap semangat kerjanya ya! Nanti kita liburan lagi di bulan berikutnya.</p>
               </div>
             </div>
           )}
@@ -414,32 +414,33 @@ export default function HistoryPage() {
       </div>
 
       <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="max-w-md mx-auto rounded-t-[32px]">
+        <DrawerContent className="max-w-md mx-auto rounded-t-[2rem]">
           <DrawerHeader className="sr-only">
-            <DrawerTitle>Detail Riwayat</DrawerTitle>
-            <DrawerDescription>Informasi detail mengenai absensi atau izin.</DrawerDescription>
+            <DrawerTitle>Info Kehadiran</DrawerTitle>
+            <DrawerDescription>Rincian data kehadiran atau izin kamu.</DrawerDescription>
           </DrawerHeader>
-          <div className="mx-auto w-12 h-1.5 bg-gray-200 rounded-full my-4" />
+          <div className="mx-auto w-12 h-1.5 bg-slate-200 rounded-full my-4" />
 
           {selectedItem && (
-            <div className="px-4 sm:px-6 pb-12 max-h-[80vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6 sm:mb-8">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                    {selectedItem.type === "attendance" ? "Detail Absensi" : "Keterangan Izin"}
+            <div className="px-5 sm:px-6 pb-12 max-h-[80vh] overflow-y-auto">
+              <div className="flex items-start justify-between mb-8 gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
+                    {selectedItem.type === "attendance" ? "Detail Absen Kamu" : "Keterangan Izin"}
                   </h2>
-                  <p className="text-sm sm:text-gray-500 font-medium">{selectedItem.date}</p>
+                  <p className="text-sm text-slate-500 font-medium capitalize">
+                    {new Date(selectedItem.dateISO).toLocaleDateString("id-ID", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
                 </div>
                 <div className={cn(
-                  "px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl text-xs sm:text-sm font-bold shadow-sm",
-
-                  selectedItem.status === "present" ? "bg-green-100 text-green-700" :
-                    selectedItem.status === "late" ? "bg-yellow-100 text-yellow-700" :
-                      "bg-red-100 text-red-700"
+                  "px-3 py-2 rounded-2xl text-[11px] font-bold shadow-sm shrink-0 border border-slate-100 text-center",
+                  selectedItem.status === "present" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                    selectedItem.status === "late" ? "bg-amber-50 text-amber-600 border-amber-100" :
+                      "bg-rose-50 text-rose-600 border-rose-100"
                 )}>
                   {selectedItem.type === "attendance"
-                    ? (selectedItem.status === "present" ? "Hadir" : selectedItem.status === "late" ? "Terlambat" : "Absen")
-                    : selectedItem.label
+                    ? (selectedItem.status === "present" ? "✅ Hadir" : selectedItem.status === "late" ? "⚠️ Terlambat" : "❌ Absen")
+                    : `ℹ️ ${selectedItem.label}`
                   }
                 </div>
               </div>
@@ -450,18 +451,18 @@ export default function HistoryPage() {
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       {/* Masuk Card */}
                       <div className={cn(
-                        "p-4 bg-gray-50 rounded-2xl border border-gray-100 transition-all duration-300",
+                        "p-4 bg-blue-50/50 rounded-3xl border border-blue-100/50 transition-all duration-300",
                         isEditingCheckout ? "opacity-50 scale-95 origin-left" : "opacity-100"
                       )}>
-                        <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase mb-1">Masuk</p>
-                        <p className="text-lg sm:text-xl font-black text-gray-900">{selectedItem.checkIn || "--:--"}</p>
+                        <p className="text-[10px] sm:text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">Jam Masuk</p>
+                        <p className="text-xl sm:text-2xl font-black text-blue-900">{selectedItem.checkIn || "--:--"}</p>
                       </div>
 
                       {/* Checkout Logic */}
                       {selectedItem.checkOut ? (
-                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                          <p className="text-xs sm:text-sm font-bold text-gray-500 uppercase mb-1">Pulang</p>
-                          <p className="text-xl sm:text-2xl font-black text-gray-900">{selectedItem.checkOut}</p>
+                        <div className="p-4 bg-blue-50/50 rounded-3xl border border-blue-100/50">
+                          <p className="text-[10px] sm:text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">Jam Pulang</p>
+                          <p className="text-xl sm:text-2xl font-black text-blue-900">{selectedItem.checkOut}</p>
                         </div>
                       ) : (
                         (() => {
@@ -470,9 +471,9 @@ export default function HistoryPage() {
 
                           if (isToday) {
                             return (
-                              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
-                                <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase mb-1">Pulang</p>
-                                <p className="text-lg sm:text-xl font-black text-gray-300">--:--</p>
+                              <div className="p-4 bg-slate-50 rounded-3xl border border-slate-200 border-dashed">
+                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Jam Pulang</p>
+                                <p className="text-xl sm:text-2xl font-black text-slate-300">--:--</p>
                               </div>
                             );
                           }
@@ -514,10 +515,10 @@ export default function HistoryPage() {
                                     setIsEditingCheckout(true);
                                     setNewCheckoutTime("16:00");
                                   }}
-                                  className="h-full p-4 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-200 cursor-pointer hover:bg-yellow-100 transition-all active:scale-95 group flex flex-col justify-center"
+                                  className="h-full p-4 bg-amber-50/80 rounded-3xl border-2 border-dashed border-amber-200 cursor-pointer hover:bg-amber-100 transition-all active:scale-95 group flex flex-col justify-center"
                                 >
-                                  <p className="text-[10px] sm:text-xs font-bold text-yellow-600 uppercase mb-1 group-hover:text-yellow-700">Pulang</p>
-                                  <p className="text-lg sm:text-xl font-black text-yellow-400 group-hover:text-yellow-500">--:--</p>
+                                  <p className="text-[10px] sm:text-[11px] font-bold text-amber-500 uppercase tracking-widest mb-1 group-hover:text-amber-600">Jam Pulang</p>
+                                  <p className="text-xl sm:text-2xl font-black text-amber-300 group-hover:text-amber-400">--:--</p>
                                 </div>
                               )}
                             </div>
@@ -536,9 +537,9 @@ export default function HistoryPage() {
                       const lng = Number(selectedItem.checkInLongitude || selectedItem.checkOutLongitude);
                       if (!lat || !lng) return null;
                       return (
-                        <div className="space-y-3">
-                          <p className="text-sm font-bold text-gray-900">Lokasi Presensi</p>
-                          <div className="rounded-[24px] overflow-hidden border border-gray-100 shadow-inner">
+                        <div className="space-y-3 mt-8">
+                          <p className="text-sm font-bold text-slate-800 tracking-tight">Lokasi Kamu Absen 📍</p>
+                          <div className="rounded-[2rem] overflow-hidden border-2 border-slate-100 shadow-sm relative z-0">
                             <Maps height="200px" currentLocation={{ latitude: lat, longitude: lng }} />
                           </div>
                         </div>

@@ -78,7 +78,7 @@ export default function Header() {
     .toUpperCase();
 
   return (
-    <header className="relative pb-6 overflow-hidden">
+    <header className="relative pb-4 overflow-hidden">
       {/* Background Carousel */}
       <div className="absolute inset-0 z-0">
         {bgImages.map((src, idx) => (
@@ -92,13 +92,11 @@ export default function Header() {
               }`}
           />
         ))}
-        {/* Gradient Bottom to Top */}
         <div className="absolute inset-0 bg-gradient-to-b from-gray-50 via-white/80 to-white/30"></div>
       </div>
 
       <div className="relative z-10">
-        {/* Top Bar: Profile & Brand */}
-        <div className="max-w-md mx-auto px-5 pt-8 pb-4 flex items-center justify-between">
+        <div className="max-w-md mx-auto px-5 pt-6 pb-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 rounded-full bg-white flex items-center justify-center shadow-sm relative overflow-hidden group active:scale-95 transition-all cursor-pointer border border-gray-100 p-1.5">
               <div className="relative w-full h-full">
@@ -138,8 +136,6 @@ export default function Header() {
             </div>
           </div>
         </div>
-
-        {/* Quick Stats Bar (Solid Yellow & Batik Theme) */}
         <div className="max-w-md mx-auto px-5">
           <div className="bg-yellow-400 rounded-3xl p-1.5 shadow-2xl shadow-yellow-400/30 flex items-center gap-1 relative overflow-hidden group border border-white/40">
             {/* Subtle Glows for depth */}

@@ -142,18 +142,18 @@ const useGeolocation = () => {
 };
 
 const ClockSkeleton = () => (
-  <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-    <div className="flex justify-between items-start mb-6">
-      <Skeleton className="h-10 w-32 bg-slate-100" />
-      <Skeleton className="h-6 w-6 bg-slate-100 rounded-lg" />
+  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div className="flex justify-between items-start mb-4">
+      <Skeleton className="h-8 w-28 bg-slate-100" />
+      <Skeleton className="h-5 w-5 bg-slate-100 rounded-md" />
     </div>
-    <div className="flex flex-col items-center mb-8">
-      <Skeleton className="h-16 w-48 bg-slate-100" />
-      <Skeleton className="h-4 w-32 mt-4 bg-slate-100 rounded-full" />
+    <div className="flex flex-col items-center mb-6">
+      <Skeleton className="h-14 w-40 bg-slate-100" />
+      <Skeleton className="h-4 w-28 mt-3 bg-slate-100 rounded-full" />
     </div>
-    <div className="grid grid-cols-2 gap-4">
-      <Skeleton className="h-32 bg-slate-50 rounded-2xl" />
-      <Skeleton className="h-32 bg-slate-50 rounded-2xl" />
+    <div className="grid grid-cols-2 gap-3">
+      <Skeleton className="h-24 bg-slate-50 rounded-xl" />
+      <Skeleton className="h-24 bg-slate-50 rounded-xl" />
     </div>
   </div>
 );
@@ -316,100 +316,145 @@ export default function Clock() {
 
   return (
     <>
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 overflow-hidden relative">
-        <div className="flex justify-between items-start mb-6">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 overflow-hidden relative">
+        <div className="flex justify-between items-start mb-4">
           <div>
-            <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-1">Kehadiran Hari Ini</p>
-            <h2 className="text-sm font-bold text-slate-800">{formatDate(currentTime)}</h2>
+            <p className="text-[9px] font-black text-yellow-500 uppercase tracking-widest mb-0.5">Hari Ini</p>
+            <h2 className="text-xs font-bold text-slate-800">{formatDate(currentTime)}</h2>
           </div>
-          <div className="h-6 w-6 rounded-lg bg-yellow-50 flex items-center justify-center">
-            <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
+          <div className="h-5 w-5 rounded-md bg-yellow-50 flex items-center justify-center">
+            <div className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
           </div>
         </div>
 
-        <div className="flex flex-col items-center mb-8 relative">
-          <div className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter tabular-nums flex items-baseline gap-1">
+        <div className="flex flex-col items-center mb-6 relative">
+          <div className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter tabular-nums flex items-baseline gap-1">
             {formatTime(currentTime).split(":").map((part, i, arr) => (
               <React.Fragment key={i}>
-                <span className={i === 2 ? "text-yellow-500 text-3xl" : ""}>{part}</span>
-                {i < arr.length - 1 && <span className="text-slate-200 text-3xl font-light -translate-y-1">:</span>}
+                <span className={i === 2 ? "text-yellow-500 text-2xl" : ""}>{part}</span>
+                {i < arr.length - 1 && <span className="text-slate-200 text-2xl font-light -translate-y-0.5">:</span>}
               </React.Fragment>
             ))}
           </div>
 
           {isOffDay ? (
-            <div className="mt-4 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center gap-2">
+            <div className="mt-3 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-              <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">{holidayInfo.holidayName}</span>
+              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">{holidayInfo.holidayName}</span>
             </div>
           ) : hasPermissionToday ? (
-            <div className="mt-4 px-4 py-1.5 rounded-full bg-amber-50 border border-amber-100 flex items-center gap-2">
+            <div className="mt-3 px-3 py-1 rounded-full bg-amber-50 border border-amber-100 flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wide">
-                Sedang {permissionType === "izin" ? "Izin" : permissionType === "sakit" ? "Sakit" : "Libur"}
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
+                Status: {permissionType}
               </span>
             </div>
           ) : (
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{getTimezoneName()}</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{getTimezoneName()}</span>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Check In */}
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          {/* Check In Button */}
           <button
             onClick={() => setOpenClockIn(true)}
             disabled={isOffDay || hasPermissionToday}
-            className={`group relative h-32 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${todayAttendance?.attendance?.checkInTime
-              ? "bg-emerald-50 border-2 border-emerald-100"
+            className={`group relative h-32 w-full rounded-[2rem] flex flex-col items-center justify-center gap-1 transition-all duration-500 active:scale-95 overflow-hidden ${todayAttendance?.attendance?.checkInTime
+              ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 border-none shadow-[0_12px_30px_-10px_rgba(16,185,129,0.6)] text-white"
               : isOffDay || hasPermissionToday
-                ? "bg-slate-50 border border-slate-100 opacity-50 grayscale"
-                : "bg-white border border-slate-100 shadow-sm hover:shadow-md"
+                ? "bg-slate-50 border border-slate-100 opacity-50 grayscale cursor-not-allowed"
+                : "bg-white border border-slate-200/60 shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.2)] hover:border-emerald-300"
               }`}
           >
-            {todayAttendance?.attendance?.checkInTime && <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-emerald-500" />}
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${todayAttendance?.attendance?.checkInTime ? "bg-emerald-500 text-white" : "bg-emerald-100 text-emerald-600"
-              }`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-              </svg>
-            </div>
-            <div className="text-center">
-              <p className="text-[10px] font-black uppercase text-slate-400">Masuk</p>
-              <p className="text-sm font-black text-slate-800">
-                {todayAttendance?.attendance?.checkInTime ? formatTime(new Date(todayAttendance.attendance.checkInTime)).split(':').slice(0, 2).join(':') : "--:--"}
-              </p>
+            {/* Background Details */}
+            {!todayAttendance?.attendance?.checkInTime && !(isOffDay || hasPermissionToday) && (
+              <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-emerald-100/80 to-transparent blur-2xl rounded-full group-hover:scale-150 transition-transform duration-700" />
+            )}
+            {todayAttendance?.attendance?.checkInTime && (
+              <>
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/20 blur-2xl rounded-full" />
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-900/20 blur-2xl rounded-full" />
+              </>
+            )}
+
+            <div className="relative z-10 flex flex-col items-center">
+              {todayAttendance?.attendance?.checkInTime ? (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center mb-1 shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]">
+                    <CheckCircle className="w-6 h-6 text-white drop-shadow-md" />
+                  </div>
+                  <p className="text-[9px] font-black uppercase text-emerald-100 tracking-[0.2em] mb-0.5">Sudah Masuk</p>
+                  <p className="text-xl font-black text-white tracking-tighter drop-shadow-md">
+                    {formatTime(new Date(todayAttendance.attendance.checkInTime)).split(':').slice(0, 2).join(':')}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-emerald-50 to-emerald-100/60 border border-emerald-200/60 flex items-center justify-center mb-1 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm group-hover:shadow-emerald-200/50">
+                    <svg className="w-5 h-5 text-emerald-600 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                  </div>
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mb-0.5 group-hover:text-emerald-500 transition-colors">Masuk</p>
+                  <p className="text-xl font-black text-slate-800 tracking-tighter">
+                    --:--
+                  </p>
+                </>
+              )}
             </div>
           </button>
 
-          {/* Check Out */}
+          {/* Check Out Button */}
           <button
             onClick={() => setOpenClockOut(true)}
             disabled={isOffDay || hasPermissionToday}
-            className={`group relative h-32 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95 ${todayAttendance?.attendance?.checkOutTime
-              ? "bg-rose-50 border-2 border-rose-100"
+            className={`group relative h-32 w-full rounded-[2rem] flex flex-col items-center justify-center gap-1 transition-all duration-500 active:scale-95 overflow-hidden ${todayAttendance?.attendance?.checkOutTime
+              ? "bg-gradient-to-br from-rose-400 via-rose-500 to-rose-600 border-none shadow-[0_12px_30px_-10px_rgba(244,63,94,0.6)] text-white"
               : isOffDay || hasPermissionToday
-                ? "bg-slate-50 border border-slate-100 opacity-50 grayscale"
-                : "bg-white border border-slate-100 shadow-sm hover:shadow-md"
+                ? "bg-slate-50 border border-slate-100 opacity-50 grayscale cursor-not-allowed"
+                : "bg-white border border-slate-200/60 shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-10px_rgba(244,63,94,0.2)] hover:border-rose-300"
               }`}
           >
-            {todayAttendance?.attendance?.checkOutTime && <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-rose-500" />}
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${todayAttendance?.attendance?.checkOutTime ? "bg-rose-500 text-white" : "bg-rose-100 text-rose-600"
-              }`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </div>
-            <div className="text-center">
-              <p className="text-[10px] font-black uppercase text-slate-400">Pulang</p>
-              <p className="text-sm font-black text-slate-800">
-                {todayAttendance?.attendance?.checkOutTime ? formatTime(new Date(todayAttendance.attendance.checkOutTime)).split(':').slice(0, 2).join(':') : "--:--"}
-              </p>
+            {/* Background Details */}
+            {!todayAttendance?.attendance?.checkOutTime && !(isOffDay || hasPermissionToday) && (
+              <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-gradient-to-tr from-rose-100/80 to-transparent blur-2xl rounded-full group-hover:scale-150 transition-transform duration-700" />
+            )}
+            {todayAttendance?.attendance?.checkOutTime && (
+              <>
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/20 blur-2xl rounded-full" />
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-rose-900/20 blur-2xl rounded-full" />
+              </>
+            )}
+
+            <div className="relative z-10 flex flex-col items-center">
+              {todayAttendance?.attendance?.checkOutTime ? (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center mb-1 shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]">
+                    <CheckCircle className="w-6 h-6 text-white drop-shadow-md" />
+                  </div>
+                  <p className="text-[9px] font-black uppercase text-rose-100 tracking-[0.2em] mb-0.5">Sudah Pulang</p>
+                  <p className="text-xl font-black text-white tracking-tighter drop-shadow-md">
+                    {formatTime(new Date(todayAttendance.attendance.checkOutTime)).split(':').slice(0, 2).join(':')}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-rose-50 to-rose-100/60 border border-rose-200/60 flex items-center justify-center mb-1 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 shadow-sm group-hover:shadow-rose-200/50">
+                    <svg className="w-5 h-5 text-rose-600 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </div>
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mb-0.5 group-hover:text-rose-500 transition-colors">Pulang</p>
+                  <p className="text-xl font-black text-slate-800 tracking-tighter">
+                    --:--
+                  </p>
+                </>
+              )}
             </div>
           </button>
-
         </div>
       </div>
 

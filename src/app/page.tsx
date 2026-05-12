@@ -64,8 +64,8 @@ export default function AbsenApp() {
 
       
       {/* Main Content Area */}
-      <main className="flex-1 px-5 pt-2 pb-24 overflow-y-auto">
-        <div className="max-w-md mx-auto space-y-6">
+      <main className="flex-1 px-4 pt-2 pb-24 overflow-y-auto">
+        <div className="max-w-md mx-auto space-y-4">
           
           {/* Section: MAIN CLOCK */}
           <section>
@@ -81,14 +81,14 @@ export default function AbsenApp() {
                   open={isModalOpen} 
                   onOpenChange={setIsModalOpen} 
                   trigger={
-                    <Button onClick={() => setIsModalOpen(true)} className="w-full bg-white hover:bg-yellow-50 text-slate-700 border-2 border-dashed border-slate-100 hover:border-yellow-200 shadow-none flex items-center justify-between px-5 h-14 rounded-2xl font-black text-xs transition-all active:scale-[0.98] group">
+                    <Button onClick={() => setIsModalOpen(true)} className="w-full bg-white hover:bg-yellow-50 text-slate-700 border-2 border-dashed border-slate-100 hover:border-yellow-200 shadow-none flex items-center justify-between px-4 h-12 rounded-xl font-black text-[11px] transition-all active:scale-[0.98] group">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-500 transition-colors">
-                          <PlusCircle className="h-4 w-4 text-yellow-600 group-hover:text-white" />
+                        <div className="w-7 h-7 rounded-lg bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-500 transition-colors">
+                          <PlusCircle className="h-3.5 w-3.5 text-yellow-600 group-hover:text-white" />
                         </div>
-                        <span>TAMBAH ABSEN MANUAL</span>
+                        <span>ABSEN MANUAL</span>
                       </div>
-                      <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-slate-50 flex items-center justify-center">
                          <PlusCircle className="h-3 w-3 text-slate-300" />
                       </div>
                     </Button>
@@ -104,12 +104,12 @@ export default function AbsenApp() {
 
 
           {/* Section: LOCATION TRACKING */}
-          <section className="space-y-3 pb-4">
+          <section className="space-y-2 pb-4">
             <div className="flex items-center justify-between px-1">
-                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Lokasi Anda</h3>
-                <span className="text-[9px] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded cursor-default">Realtime</span>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lokasi Sekarang</h3>
+                <span className="text-[8px] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded cursor-default">GPS</span>
             </div>
-            <div className="rounded-3xl overflow-hidden border-4 border-white shadow-xl bg-white aspect-square">
+            <div className="rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-white aspect-square">
               <Maps height="100%" />
             </div>
           </section>

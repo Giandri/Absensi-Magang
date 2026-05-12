@@ -77,40 +77,40 @@ export default function Permission({ hasCheckedIn = false }: PermissionProps) {
 
   if (!isMounted) {
     return (
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 min-h-[160px] animate-pulse">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 min-h-[140px] animate-pulse">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="h-3 w-20 bg-slate-200 rounded mb-2"></div>
-            <div className="h-6 w-32 bg-slate-200 rounded"></div>
+            <div className="h-2.5 w-16 bg-slate-200 rounded mb-1.5"></div>
+            <div className="h-5 w-24 bg-slate-200 rounded"></div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
-           <div className="h-24 bg-slate-100 rounded-2xl"></div>
-           <div className="h-24 bg-slate-100 rounded-2xl"></div>
-           <div className="h-24 bg-slate-100 rounded-2xl"></div>
+           <div className="h-20 bg-slate-100 rounded-xl"></div>
+           <div className="h-20 bg-slate-100 rounded-xl"></div>
+           <div className="h-20 bg-slate-100 rounded-xl"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pengecualian</p>
-          <h3 className="font-black text-slate-800 text-lg">Keterangan Khusus</h3>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pengajuan</p>
+          <h3 className="font-black text-slate-800 text-sm">Izin & Cuti</h3>
         </div>
         {!hasCheckedIn && (
-          <div className="bg-slate-50 text-[10px] font-bold text-slate-400 px-2 py-1 rounded-md uppercase tracking-wider">Tersedia</div>
+          <div className="bg-slate-50 text-[9px] font-bold text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-wider">Buka</div>
         )}
       </div>
 
       {hasCheckedIn && (
-        <div className="flex items-center gap-3 text-emerald-600 bg-emerald-50 px-4 py-3 rounded-2xl mb-6 text-xs font-bold border border-emerald-100">
-          <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-            <CheckCircle className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl mb-4 text-[10px] font-bold border border-emerald-100">
+          <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+            <CheckCircle className="w-2.5 h-2.5" />
           </div>
-          <span>Izin tidak tersedia setelah absen.</span>
+          <span>Pengajuan ditutup setelah absen.</span>
         </div>
       )}
 
@@ -121,14 +121,14 @@ export default function Permission({ hasCheckedIn = false }: PermissionProps) {
             <button
               onClick={() => handleOpen("libur")}
               disabled={hasCheckedIn}
-              className={`group flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95 ${
+              className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all active:scale-95 ${
                 hasCheckedIn ? "opacity-30 cursor-not-allowed" : "hover:bg-blue-50/50"
               }`}
             >
-              <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center transition-all group-hover:bg-blue-600 group-hover:text-white shadow-sm ring-1 ring-blue-100 group-hover:ring-blue-600">
-                <Calendar className="w-6 h-6" />
+              <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center transition-all group-hover:bg-blue-600 group-hover:text-white shadow-sm ring-1 ring-blue-100 group-hover:ring-blue-600">
+                <Calendar className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-tighter">Libur</span>
+              <span className="text-[9px] font-black text-slate-600 uppercase tracking-wider">Cuti</span>
             </button>
           </AlertDialogTrigger>
           <AlertDialogContent className="max-w-md rounded-3xl overflow-y-auto max-h-[90vh]">
@@ -167,14 +167,14 @@ export default function Permission({ hasCheckedIn = false }: PermissionProps) {
             <button
               onClick={() => handleOpen("izin")}
               disabled={hasCheckedIn}
-              className={`group flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95 ${
+              className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all active:scale-95 ${
                 hasCheckedIn ? "opacity-30 cursor-not-allowed" : "hover:bg-amber-50/50"
               }`}
             >
-              <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center transition-all group-hover:bg-amber-600 group-hover:text-white shadow-sm ring-1 ring-amber-100 group-hover:ring-amber-600">
-                <FileText className="w-6 h-6" />
+              <div className="w-11 h-11 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center transition-all group-hover:bg-amber-600 group-hover:text-white shadow-sm ring-1 ring-amber-100 group-hover:ring-amber-600">
+                <FileText className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-tighter">Izin</span>
+              <span className="text-[9px] font-black text-slate-600 uppercase tracking-wider">Izin</span>
             </button>
           </AlertDialogTrigger>
           <AlertDialogContent className="max-w-md rounded-3xl overflow-y-auto max-h-[90vh]">
@@ -213,14 +213,14 @@ export default function Permission({ hasCheckedIn = false }: PermissionProps) {
             <button
               onClick={() => handleOpen("sakit")}
               disabled={hasCheckedIn}
-              className={`group flex flex-col items-center gap-2 p-3 rounded-2xl transition-all active:scale-95 ${
+              className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all active:scale-95 ${
                 hasCheckedIn ? "opacity-30 cursor-not-allowed" : "hover:bg-rose-50/50"
               }`}
             >
-              <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center transition-all group-hover:bg-rose-600 group-hover:text-white shadow-sm ring-1 ring-rose-100 group-hover:ring-rose-600">
-                <Stethoscope className="w-6 h-6" />
+              <div className="w-11 h-11 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center transition-all group-hover:bg-rose-600 group-hover:text-white shadow-sm ring-1 ring-rose-100 group-hover:ring-rose-600">
+                <Stethoscope className="w-5 h-5" />
               </div>
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-tighter">Sakit</span>
+              <span className="text-[9px] font-black text-slate-600 uppercase tracking-wider">Sakit</span>
             </button>
           </AlertDialogTrigger>
           <AlertDialogContent className="rounded-3xl overflow-y-auto max-h-[90vh]">
